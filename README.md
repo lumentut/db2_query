@@ -1,4 +1,7 @@
 # Db2Query
+
+[![Gem Version](https://badge.fury.io/rb/db2_query.svg)](https://badge.fury.io/rb/db2_query)
+
 A Rails query plugin to fetch data from Db2 database by using ODBC connection.
 
 ## Installation
