@@ -31,7 +31,7 @@ module DB2Query
       end
 
       self.default_connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    
+
       base.extend ClassMethods
     end
 
@@ -50,12 +50,12 @@ module DB2Query
         unless sql_statement.strip.match?(/^select/i)
           raise NotImplementedError
         end
-  
+
         self.class.define_method(name) do |*args|
           connection.exec_query(sql_statement, args)
         end
       end
-  
+
       private
         def attr_format
           @attr_format ||= Hash.new
@@ -84,6 +84,5 @@ module DB2Query
           end
         end
     end
-
   end
 end

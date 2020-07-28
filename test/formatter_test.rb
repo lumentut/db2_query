@@ -2,6 +2,5 @@
 
 class FormatterTest < ActiveSupport::TestCase
   setup do
-
   end
 end

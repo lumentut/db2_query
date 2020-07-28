@@ -22,20 +22,21 @@ class ConnectionTest < ActiveSupport::TestCase
 
   def test_establish_connection_uses_spec_name
     old_config = DB2Query::Base.configurations
-    config = { "readonly" => { 
-      "adapter" => "db2_query", 
-      "conn_string" => { 
-        "driver"  => "DB2",
-        "database"  => "ARUNIT2",
-        "dbalias"  => "ARUNIT2",
-        "hostname"  => "LOCALHOST",
-        "currentschema"  => "LIBTEST",
-        "port"  => "0",
-        "protocol"  => "IPC",
-        "uid"  =>  ENV["DB2EC_UID"],
-        "pwd"  => ENV["DB2EC_PWD"],
+    config = { "readonly" => {
+      "adapter" => "db2_query",
+        "conn_string" => {
+          "driver"  => "DB2",
+          "database"  => "ARUNIT2",
+          "dbalias"  => "ARUNIT2",
+          "hostname"  => "LOCALHOST",
+          "currentschema"  => "LIBTEST",
+          "port"  => "0",
+          "protocol"  => "IPC",
+          "uid"  =>  ENV["DB2EC_UID"],
+          "pwd"  => ENV["DB2EC_PWD"],
+        }
       }
-    }}
+    }
     DB2Query::Base.configurations = config
     resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
     spec =  resolver.spec(:readonly)

@@ -75,11 +75,11 @@ module DB2Query
             OpenStruct.new({ name: key.to_s, value: value, index: index })
           end
           binds = binds.sort_by { |bind| bind.index }
-          [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value}]
+          [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value }]
         elsif question_mark_positions.length == 1 && args.length == 1
           column = sql[/(.*?) = \?|(.*?) =\?|(.*?)= \?|(.*?)=\?/m, 1].split.last.downcase
           bind = Bind.new(column, args)
-          OpenStruct.new({ name: column, value: args})
+          OpenStruct.new({ name: column, value: args })
           [[[bind, bind.value]], bind.value]
         else
           [args.map { |arg| [nil, arg] }, args]

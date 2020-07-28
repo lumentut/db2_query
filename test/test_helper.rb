@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ENV["RAILS_ENV"] = "dqunit"
-ENV["DQ_CONFIG_PATH"] = __dir__ + '/config.yml'
+ENV["DQ_CONFIG_PATH"] = __dir__ + "/config.yml"
 
 require "minitest/autorun"
 require "byebug"
@@ -12,8 +12,8 @@ DB2Query::Base.configurations = DB2Query.config
 DB2Query::Base.establish_connection :dqunit
 
 SQL_FILES_DIR = "#{Dir.pwd}/test/sql"
-CREATE_USER_SQL_FILE = SQL_FILES_DIR + '/create_users.sql'
-INSERT_USER_SQL_FILE = SQL_FILES_DIR + '/insert_user.sql'
+CREATE_USER_SQL_FILE = SQL_FILES_DIR + "/create_users.sql"
+INSERT_USER_SQL_FILE = SQL_FILES_DIR + "/insert_user.sql"
 
 @connection = DB2Query::Base.connection
 

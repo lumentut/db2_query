@@ -2,7 +2,6 @@
 
 module DB2Query
   class Result < ActiveRecord::Result
-
     def initialize(columns, rows, column_types = {})
       super(columns, rows, column_types)
     end
