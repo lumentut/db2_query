@@ -1,56 +1,33 @@
 # frozen_string_literal: true
 
-module Db2Query
+module DB2Query
   module ConnectionHandling
-    extend ActiveSupport::Concern
+    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
+    DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
-    DEFAULT_DB = "primary"
+    def resolve_config_for_connection(config_or_env) # :nodoc:
+      raise "Anonymous class is not allowed." unless name
 
-    included do |base|
-      def base.inherited(child)
-        child.connection = @connection
-      end
+      config_or_env ||= DEFAULT_ENV.call.to_sym
+      pool_name = primary_class? ? "primary" : name
+      self.connection_specification_name = pool_name
+      resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
 
-      base.extend ClassMethods
-      base.connection = nil
+      config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
+      config_hash[:name] = pool_name
+
+      config_hash
     end
 
-    module ClassMethods
-      attr_reader :connection
-
-      def connection=(connection)
-        @connection = connection
-        update_descendants_connection unless self.descendants.empty?
+    def connection_specification_name
+      if !defined?(@connection_specification_name) || @connection_specification_name.nil?
+        return self == Base ? "primary" : superclass.connection_specification_name
       end
+      @connection_specification_name
+    end
 
-      def update_descendants_connection
-        self.descendants.each { |child| child.connection = @connection }
-      end
-
-      def establish_connection(db_name = nil)
-        clear_connection unless self.connection.nil?
-        db_name = db_name.nil? ? DEFAULT_DB : db_name.to_s
-
-        self.load_database_configurations if self.configurations.nil?
-
-        if self.configurations[db_name].nil?
-          raise Error, "Database (:#{db_name}) not found at database configurations."
-        end
-
-        conn_type, conn_config = extract_configuration(db_name)
-
-        connector = ODBCConnector.new(conn_type, conn_config)
-        self.connection = Connection.new(connector, db_name)
-      end
-
-      def current_database
-        @connection.db_name
-      end
-
-      def clear_connection
-        @connection.disconnect!
-        @connection = nil
-      end
+    def primary_class?
+      self == Base || defined?(ApplicationRecord) && self == ApplicationRecord
     end
   end
 end

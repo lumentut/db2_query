@@ -1,29 +1,20 @@
 # frozen_string_literal:true
 
-require "odbc"
 require "yaml"
 require "erb"
 require "active_record"
 require "active_support"
+require "active_record/database_configurations"
+require "db2_query/config"
 
-module Db2Query
+module DB2Query
   extend ActiveSupport::Autoload
 
   autoload :Version
-  autoload :Error
-  autoload :Path
-  autoload :Schema
-  autoload :DatabaseConfigurations
-  autoload :ODBCConnector
-  autoload :Connection
+  autoload :Base
+  autoload :Core
   autoload :ConnectionHandling
   autoload :DatabaseStatements
-  autoload :SQLValidator
-  autoload :LogSubscriber
-  autoload :Formatter
-  autoload :Column
+  autoload :ODBCConnector
   autoload :Result
-  autoload :Base
 end
-
-require "db2_query/railtie"

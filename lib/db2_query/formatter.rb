@@ -24,22 +24,4 @@ module Db2Query
       raise NotImplementedError, "Implement format method in your subclass."
     end
   end
-
-  class BareFormatter < AbstractFormatter
-    def format(value)
-      value
-    end
-  end
-
-  class FloatFormatter < AbstractFormatter
-    def format(value)
-      value.to_f
-    end
-  end
-
-  class IntegerFormatter < AbstractFormatter
-    def format(value)
-      value.to_i
-    end
-  end
 end

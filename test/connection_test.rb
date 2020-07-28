@@ -3,56 +3,101 @@
 require "test_helper"
 
 class ConnectionTest < ActiveSupport::TestCase
-  test "it can read all databases provided" do
-    databases = Db2Query::Base.configurations_databases
-    assert_equal ["primary", "secondary"], databases
+  def setup
+    @handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    @spec_name = "primary"
+    @pool = @handler.establish_connection(DB2Query::Base.configurations["dqunit"])
   end
 
-  test "subclass get all databases provided" do
-    databases = ConnectionModel.configurations_databases
-    assert_equal ["primary", "secondary"], databases
+  def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
+    original_rails_env = ENV["RAILS_ENV"]
+    original_rack_env  = ENV["RACK_ENV"]
+    ENV["RAILS_ENV"]   = ENV["RACK_ENV"] = ""
+
+    assert_equal "default_env", ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+  ensure
+    ENV["RAILS_ENV"] = original_rails_env
+    ENV["RACK_ENV"]  = original_rack_env
   end
 
-  test "base class get preset database" do
-    assert_equal :primary, Db2Query::Base.current_database
+  def test_establish_connection_uses_spec_name
+    old_config = DB2Query::Base.configurations
+    config = { "readonly" => { 
+      "adapter" => "db2_query", 
+      "conn_string" => { 
+        "driver"  => "DB2",
+        "database"  => "ARUNIT2",
+        "dbalias"  => "ARUNIT2",
+        "hostname"  => "LOCALHOST",
+        "currentschema"  => "LIBTEST",
+        "port"  => "0",
+        "protocol"  => "IPC",
+        "uid"  =>  ENV["DB2EC_UID"],
+        "pwd"  => ENV["DB2EC_PWD"],
+      }
+    }}
+    DB2Query::Base.configurations = config
+    resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
+    spec =  resolver.spec(:readonly)
+    @handler.establish_connection(spec.to_hash)
+
+    assert_not_nil @handler.retrieve_connection_pool("readonly")
+  ensure
+    DB2Query::Base.configurations = old_config
+    @handler.remove_connection("readonly")
   end
 
-  test "subclass and baseclass connection do not interfere with each other" do
-    assert_equal :primary, ConnectionModel.current_database
+  def test_retrieve_connection
+    assert @handler.retrieve_connection(@spec_name)
+  end
 
-    ConnectionModel.establish_connection :secondary
+  def test_active_connections?
+    assert_not_predicate @handler, :active_connections?
+    assert @handler.retrieve_connection(@spec_name)
+    assert_predicate @handler, :active_connections?
+    @handler.clear_active_connections!
+    assert_not_predicate @handler, :active_connections?
+  end
 
-    assert_equal :primary, Db2Query::Base.current_database
-    assert_equal :secondary, ConnectionModel.current_database
+  def test_retrieve_connection_pool
+    assert_not_nil @handler.retrieve_connection_pool(@spec_name)
+  end
 
-    Db2Query::Base.connection.connect
-    assert Db2Query::Base.connection.active?
+  def test_retrieve_connection_pool_with_invalid_id
+    assert_nil @handler.retrieve_connection_pool("foo")
+  end
 
-    Db2Query::Base.connection.disconnect!
-    assert !Db2Query::Base.connection.active?
-    assert ConnectionModel.connection.active?
+  def test_connection_pools
+    assert_equal([@pool], @handler.connection_pools)
+  end
 
-    Db2Query::Base.connection.reconnect!
-    assert Db2Query::Base.connection.active?
+  class ApplicationRecord < DB2Query::Base
+    self.abstract_class = true
+  end
 
-    ConnectionModel.connection.connect
-    assert ConnectionModel.connection.active?
+  class MyClass < ApplicationRecord
+  end
 
-    ConnectionModel.connection.disconnect!
-    assert !ConnectionModel.connection.active?
-    assert Db2Query::Base.connection.active?
+  def test_connection_specification_name_should_fallback_to_parent
+    Object.send :const_set, :ApplicationRecord, ApplicationRecord
 
-    ConnectionModel.connection.reconnect!
-    assert ConnectionModel.connection.active?
+    klassA = Class.new(DB2Query::Base)
+    klassB = Class.new(klassA)
+    klassC = Class.new(MyClass)
 
-    assert_equal :primary, Db2Query::Base.current_database
-    assert_equal :secondary, ConnectionModel.current_database
+    assert_equal klassB.connection_specification_name, klassA.connection_specification_name
+    assert_equal klassC.connection_specification_name, klassA.connection_specification_name
 
-    Db2Query::Base.clear_connection
-    assert_not_equal nil, ConnectionModel.connection
+    assert_equal "primary", klassA.connection_specification_name
+    assert_equal "primary", klassC.connection_specification_name
 
-    Db2Query::Base.establish_connection :primary
-    ConnectionModel.establish_connection :primary
-    assert_equal Db2Query::Base.current_database, ConnectionModel.current_database
+    klassA.connection_specification_name = "readonly"
+    assert_equal "readonly", klassB.connection_specification_name
+
+    DB2Query::Base.connection_specification_name = "readonly"
+    assert_equal "readonly", klassC.connection_specification_name
+  ensure
+    Object.send :remove_const, :ApplicationRecord
+    DB2Query::Base.connection_specification_name = "primary"
   end
 end

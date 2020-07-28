@@ -8,7 +8,7 @@ require "db2_query/version"
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |spec|
   spec.name        = "db2_query"
-  spec.version     = Db2Query::VERSION
+  spec.version     = DB2Query::VERSION
   spec.authors     = ["yohanes_l"]
   spec.email       = ["yohanes.lumentut@yahoo.com"]
   spec.summary     = "Db2Query"
@@ -27,8 +27,9 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["{lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  spec.add_dependency "rails", "~> 6.0.3", ">= 6.0.3.1"
   spec.add_dependency "ruby-odbc", "~> 0.99999"
+  spec.add_dependency "activesupport", "~> 6.0.3", ">= 6.0.3.1"
+  spec.add_dependency "activerecord", "~> 6.0.3", ">= 6.0.3.1"
   spec.add_development_dependency "rubocop"
   spec.add_development_dependency "rubocop-performance"
   spec.add_development_dependency "rubocop-rails"

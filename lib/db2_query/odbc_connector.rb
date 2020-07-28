@@ -1,14 +1,14 @@
-# frozen_string_literal: true
+# frozen_String_literal: true
 
-module Db2Query
+module DB2Query
+  CONNECTION_TYPES = %i[dsn conn_string].freeze
+
   class ODBCConnector
     attr_reader :connector, :conn_type, :conn_config
 
-    CONNECTION_TYPES = %i[dsn conn_string].freeze
-
     def initialize(type, config)
       @conn_type, @conn_config = type, config.transform_keys(&:to_sym)
-      @connector = Db2Query.const_get("#{conn_type.to_s.camelize}Connector").new
+      @connector = DB2Query.const_get("#{conn_type.to_s.camelize}Connector").new
     end
 
     def connect
@@ -20,7 +20,7 @@ module Db2Query
     def connect(config)
       ::ODBC.connect(config[:dsn], config[:uid], config[:pwd])
     rescue ::ODBC::Error => e
-      raise Error, "Unable to activate ODBC DSN connection #{e}"
+      raise ArgumentError, "Unable to activate ODBC DSN connection #{e}"
     end
   end
 
@@ -32,7 +32,7 @@ module Db2Query
       end
       ::ODBC::Database.new.drvconnect(driver)
     rescue ::ODBC::Error => e
-      raise Error, "Unable to activate ODBC Conn String connection #{e}"
+      raise ArgumentError, "Unable to activate ODBC Conn String connection #{e}"
     end
   end
 end

@@ -1,39 +1,39 @@
 # frozen_string_literal: true
 
-ENV["RAILS_ENV"] = "test"
+ENV["RAILS_ENV"] = "dqunit"
+ENV["DQ_CONFIG_PATH"] = __dir__ + '/config.yml'
 
-require_relative "../test/dummy/config/environment"
-require "rails/test_help"
-require "faker"
+require "minitest/autorun"
 require "byebug"
+require "faker"
+require "db2_query"
 
-Db2Query::Schema.initiation do
-  # connection will be initialize here?
-  config.init_connection = true
+DB2Query::Base.configurations = DB2Query.config
+DB2Query::Base.establish_connection :dqunit
 
-  # validate current schema
-  config.schema = "LIBTEST"
+SQL_FILES_DIR = "#{Dir.pwd}/test/sql"
+CREATE_USER_SQL_FILE = SQL_FILES_DIR + '/create_users.sql'
+INSERT_USER_SQL_FILE = SQL_FILES_DIR + '/insert_user.sql'
 
-  # directory of tables creation sql
-  config.sql_files_dir = "#{Dir.pwd}/test/sql"
+@connection = DB2Query::Base.connection
 
-  # perform initial tasks
-  perform_tasks do
-    # drop all tables in schema
-    task :drop_tables do
-      tables_in_schema.each do |table|
-        execute(sql("DROP TABLE #{schema}.#{table}"))
-      end
-    end
+def tables_in_schema
+  @connection.query_values <<-SQL
+    SELECT table_name FROM SYSIBM.SQLTABLES
+    WHERE table_schem='LIBTEST' AND table_type='TABLE'
+  SQL
+end
 
-    # create table
-    task :create_users_table, file("users.sql")
+tables_in_schema.each do |table|
+  @connection.exec_query("DROP TABLE LIBTEST.#{table}")
+end
 
-    # populate users
-    task :create_users, file("create_user.sql") do |sql|
-      (10000...10021).each do |i|
-        execute(sql, i, Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email)
-      end
-    end
-  end
+def sql(sql_file)
+  File.read("#{sql_file}")
+end
+
+@connection.exec_query(sql(CREATE_USER_SQL_FILE))
+
+(10000...10010).each do |i|
+  @connection.execute(sql(INSERT_USER_SQL_FILE), [i, Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email])
 end
