@@ -8,7 +8,7 @@ module DB2Query
 
     def config_path
       if defined?(Rails)
-        "#{Rails.root}/config/db2_query_config.yml"
+        "#{Rails.root}/config/db2query_database.yml"
       else
         ENV["DQ_CONFIG_PATH"]
       end

@@ -33,4 +33,9 @@ class ExceptionTest < ActiveSupport::TestCase
     exception = assert_raise(Exception) { User.insert_record }
     assert_equal("NotImplementedError", exception.message)
   end
+
+  def test_non_string
+    exception = assert_raise(Exception) { User.non_string }
+    assert_equal("Query methods must return a SQL statement string!", exception.message)
+  end
 end

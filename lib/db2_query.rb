@@ -16,5 +16,8 @@ module DB2Query
   autoload :ConnectionHandling
   autoload :DatabaseStatements
   autoload :ODBCConnector
+  autoload :Formatter
   autoload :Result
+
+  require "db2_query/railtie" if defined?(Rails)
 end

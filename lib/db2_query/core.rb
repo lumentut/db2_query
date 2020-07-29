@@ -37,7 +37,7 @@ module DB2Query
 
     module ClassMethods
       def attributes(attr_name, format)
-        attr_format.store(attr_name, format)
+        formatters.store(attr_name, format)
       end
 
       def query(name, sql_statement)
@@ -52,13 +52,13 @@ module DB2Query
         end
 
         self.class.define_method(name) do |*args|
-          connection.exec_query(sql_statement, args)
+          connection.exec_query(sql_statement, formatters, args)
         end
       end
 
       private
-        def attr_format
-          @attr_format ||= Hash.new
+        def formatters
+          @formatters ||= Hash.new
         end
 
         def defined_method_name?(name)
@@ -73,7 +73,7 @@ module DB2Query
             sql_statement = allocate.method(sql_method).call
 
             unless sql_statement.is_a? String
-              raise Error, "Query methods must return a SQL statement string!"
+              raise ArgumentError, "Query methods must return a SQL statement string!"
             end
 
             query(method_name, sql_statement)

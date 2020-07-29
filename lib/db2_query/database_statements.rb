@@ -29,7 +29,7 @@ module DB2Query
       end
     end
 
-    def exec_query(sql, args = [], name = "SQL")
+    def exec_query(sql, formatter = {}, args = [], name = "SQL")
       binds, args = extract_binds_from_sql(sql, args)
       log(sql, name, binds, args) do
         begin
@@ -43,7 +43,7 @@ module DB2Query
         ensure
           stmt.drop unless stmt.nil?
         end
-        DB2Query::Result.new(columns, rows)
+        DB2Query::Result.new(columns, rows, formatter)
       end
     end
 
@@ -78,8 +78,7 @@ module DB2Query
           [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value }]
         elsif question_mark_positions.length == 1 && args.length == 1
           column = sql[/(.*?) = \?|(.*?) =\?|(.*?)= \?|(.*?)=\?/m, 1].split.last.downcase
-          bind = Bind.new(column, args)
-          OpenStruct.new({ name: column, value: args })
+          bind = OpenStruct.new({ name: column, value: args })
           [[[bind, bind.value]], bind.value]
         else
           [args.map { |arg| [nil, arg] }, args]

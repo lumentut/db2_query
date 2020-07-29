@@ -38,7 +38,8 @@ At `db2query_database.yml` we can use two type of connection:
 2. Connection String config
 ```yml
 development:
-  primary:                         # Connection String Example
+  primary:                          # Connection String Example
+    adapter: db2_query
     conn_string:
       driver: DB2
       database: SAMPLE
@@ -49,36 +50,44 @@ development:
       protocol: IPC
       uid: <%= ENV["DB2EC_UID"] %>
       pwd: <%= ENV["DB2EC_PWD"] %>
-  secondary:                       # DSN Example
-    dsn: SAMPLE
-    uid: <%= ENV["DB2EC_UID"] %>
-    pwd: <%= ENV["DB2EC_PWD"] %>
+  secondary:
+    adapter: db2_query             # DSN Example
+    dsn: iseries
+    uid: <%= ENV["ISERIES_UID"] %>
+    pwd: <%= ENV["ISERIES_PWD"] %>
 ```
 
 ## Usage
 ### Basic Usage
 Create query class that inherit from `Db2Query::Base` in `app/queries` folder
 ```ruby
-class Users < Db2Query::Base
+class User < Db2Query::Base
   query :find_by, <<-SQL
-    SELECT * FROM LIBTEST.USERS WHERE user_id = ?
+    SELECT * FROM LIBTEST.USERS WHERE id = ?
   SQL
 end
 ```
 Or use a normal sql method (don't forget the `_sql` suffix)
 ```ruby
-class Users < Db2Query::Base 
+class User < Db2Query::Base 
   def find_by_sql
-    "SELECT * FROM LIBTEST.USERS WHERE user_id = ?"
+    "SELECT * FROM LIBTEST.USERS WHERE id = ?"
   end
 end
 ```
 Check it at rails console
 ```bash
-Users.find_by 10000
-Users Load (330.28ms)  SELECT * FROM LIBTEST.USERS WHERE user_id = ? [[10000]]
-=> #<Db2Query::Result [#<Users::FindBy user_id: 10000, first_name: "Alex", last_name: "Jacobi", email: "lula_durgan@dooley.com">]>
+User.find_by 10000
+SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE user_id = ? [[nil, 10000]]
+=> #<Db2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
+Or using keywords argument
+```bash
+User.by_name first_name: "Strange", last_name: "Stephen"
+SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ? [["first_name", Strange], ["last_name", Stephen]]
+=> #<Db2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
+```
+
 ### Formatter
 In order to get different result column format, a query result can be reformatted by add a formatter class that inherit `Db2Query::AbstractFormatter` then register at `config\initializers\db2query.rb`
 ```ruby
@@ -87,7 +96,7 @@ require "db2_query/formatter"
 # create a formatter class
 class FirstNameFormatter < Db2Query::AbstractFormatter
   def format(value)
-    "Mr/Mrs. " + value
+    "Dr." + value
   end
 end
 
@@ -98,30 +107,19 @@ end
 ```
 Use it at query class
 ```ruby
-class Users < Db2Query::Base
+class Doctor < User
   attributes :first_name, :first_name_formatter
-
-  query :find_by, <<-SQL
-    SELECT * FROM LIBTEST.USERS WHERE user_id = ?
-  SQL
 end
 ```
 Check it at rails console
 ```bash
-Users.find_by 10000
-Users Load (330.28ms)  SELECT * FROM LIBTEST.USERS WHERE user_id = ? [[10000]]
-=> #<Db2Query::Result [#<Users::FindBy user_id: 10000, first_name: "Mr/Mrs. Alex", last_name: "Jacobi", email: "lula_durgan@dooley.com">]>
+Doctor.find_by id: 10000
+SQL Load (30.28ms)  SELECT * FROM LIBTEST.USERS WHERE user_id = ? [["id", 10000]]
+=> #<Db2Query::Result @records=[#<Record id: 10000, first_name: "Dr.Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
-### Available methods
-Db2Query::Result has public methods as follows:
-- to_a
-- to_hash
-- pluck
-- first
-- last
-- size
-- each
 
+### Available methods
+`Db2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom `records` method.
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

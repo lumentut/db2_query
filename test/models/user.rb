@@ -21,4 +21,8 @@ class User < DB2Query::Base
     "INSERT INTO users (id, first_name, last_name, email)
     VALUES (10010, John, Doe, john.doe@gmail.com)"
   end
+
+  def non_string_sql
+    0
+  end
 end

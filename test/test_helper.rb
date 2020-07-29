@@ -4,7 +4,6 @@ ENV["RAILS_ENV"] = "dqunit"
 ENV["DQ_CONFIG_PATH"] = __dir__ + "/config.yml"
 
 require "minitest/autorun"
-require "byebug"
 require "faker"
 require "db2_query"
 

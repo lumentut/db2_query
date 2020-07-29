@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-module Db2Query
+module DB2Query
   module Formatter
     def self.register(name, klass)
-      self.registry.store(name, klass.new)
+      self.format_registry.store(name.to_sym, klass.new)
     end
 
-    def self.registry
-      @@registry ||= Hash.new
+    def self.format_registry
+      @@format_registry ||= Hash.new
     end
 
     def self.lookup(name)
-      @@registry.fetch(name.to_sym)
+      @@format_registry.fetch(name)
     end
 
     def self.registration(&block)
