@@ -3,15 +3,18 @@
 DB2_QUERY_INITIALIZER_TEMPLATE ||= <<-EOF
 # frozen_string_literal: true
 
-# Example
+require "db2_query"
 require "db2_query/formatter"
-class FirstNameFormatter < Db2Query::AbstractFormatter
+
+# Example
+
+class FirstNameFormatter < DB2Query::AbstractFormatter
   def format(value)
     "Dr." + value
   end
 end
 
-Db2Query::Formatter.registration do |format|
+DB2Query::Formatter.registration do |format|
   format.register(:first_name_formatter, FirstNameFormatter)
 end
 EOF

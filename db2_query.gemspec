@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.version     = DB2Query::VERSION
   spec.authors     = ["yohanes_l"]
   spec.email       = ["yohanes.lumentut@yahoo.com"]
-  spec.summary     = "Db2Query"
+  spec.summary     = "DB2Query"
   spec.description = "A Rails query plugin to fetch data from Db2 database by using ODBC connection."
   spec.homepage    = "https://github.com/yohaneslumentut/db2_query"
   spec.license     = "MIT"

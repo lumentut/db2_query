@@ -20,6 +20,8 @@ Or install it yourself as:
 ```bash
 $ gem install db2_query
 ```
+## Note
+Start v.0.2.0, this module use `DB2Query` instead of `Db2Query`
 
 ## Initialization
 Execute init task at the app root
