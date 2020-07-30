@@ -177,5 +177,21 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_nam
 => [{:id=> 10000, :first_name=> "Strange", :last_name=> "Stephen", :email=> "strange@marvel.universe.com"}]
 ```
 
+Another example:
+```ruby
+class User < Db2Record
+  scope :age_gt, -> age {
+    query("SELECT * FROM LIBTEST.USERS WHERE age > #{age}")
+  }
+end
+```
+
+Then, call it as usuall
+```bash
+User.age_gt 500
+SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE age > 500
+=> [{:id=> 99999, :first_name=> "Ancient", :last_name=> "One", :email=> "ancientone@marvel.universe.com"}]
+```
+
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
