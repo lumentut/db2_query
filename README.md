@@ -170,7 +170,6 @@ class User < Db2Record
   }
 end
 ```
-Then, call it as usuall
 ```bash
 User.by_name first_name: "Strange", last_name: "Stephen"
 SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ? [["first_name", Strange], ["last_name", Stephen]]
@@ -186,7 +185,6 @@ class User < Db2Record
 end
 ```
 
-Then, call it as usuall
 ```bash
 User.age_gt 500
 SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE age > 500
