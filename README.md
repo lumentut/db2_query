@@ -147,5 +147,35 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [["id", 10000]]
 ### Available methods
 `DB2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom `records` method.
 
+### ActiveRecord Combination
+
+Create an abstract class that inherit from `ActiveRecord::Base`
+```ruby
+class DB2Record < ActiveRecord::Base
+  self.abstract_class = true
+
+  def self.query(sql, formatter = {}, args = [])
+    DB2Query::Base.connection.exec_query(sql, formatter, args).to_a.map(&:deep_symbolize_keys)
+  end
+end
+```
+
+Use the goodness of rails model `scope`
+```ruby
+class User < DB2Record
+  scope :by_name, -> *args {
+    query(
+      "SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ?", {}, args
+    )
+  }
+end
+```
+Then, call it as usuall
+```bash
+User.by_name first_name: "Strange", last_name: "Stephen"
+SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ? [["first_name", Strange], ["last_name", Stephen]]
+=> #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
+```
+
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
