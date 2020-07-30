@@ -160,7 +160,7 @@ class DB2Record < ActiveRecord::Base
 end
 ```
 
-Use the goodness of rails model `scope`
+Utilize the goodness of rails model `scope`
 ```ruby
 class User < DB2Record
   scope :by_name, -> *args {
@@ -174,7 +174,7 @@ Then, call it as usuall
 ```bash
 User.by_name first_name: "Strange", last_name: "Stephen"
 SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ? [["first_name", Strange], ["last_name", Stephen]]
-=> #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
+=> [{:id=> 10000, :first_name=> "Strange", :last_name=> "Stephen", :email=> "strange@marvel.universe.com"}]
 ```
 
 ## License
