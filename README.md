@@ -107,7 +107,7 @@ User.find_by 10000
 SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [[nil, 10000]]
 => #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
-Or using keywords argument
+Or using keywords argument if the sql use `=` operator, e.g `first_name = ?`
 ```bash
 User.by_name first_name: "Strange", last_name: "Stephen"
 SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ? [["first_name", Strange], ["last_name", Stephen]]
