@@ -151,7 +151,7 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [["id", 10000]]
 
 Create an abstract class that inherit from `ActiveRecord::Base`
 ```ruby
-class DB2Record < ActiveRecord::Base
+class Db2Record < ActiveRecord::Base
   self.abstract_class = true
 
   def self.query(sql, formatter = {}, args = [])
@@ -162,7 +162,7 @@ end
 
 Utilize the goodness of rails model `scope`
 ```ruby
-class User < DB2Record
+class User < Db2Record
   scope :by_name, -> *args {
     query(
       "SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ?", {}, args
