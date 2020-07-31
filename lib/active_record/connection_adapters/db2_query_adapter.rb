@@ -43,7 +43,13 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
+      def current_transaction
+      end
+
       def begin_transaction(options = {})
+      end
+
+      def transaction_open?
       end
 
       def connect

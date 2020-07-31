@@ -48,6 +48,11 @@ module DB2Query
     end
 
     private
+      def single_value_from_rows(rows)
+        row = rows.first
+        row && row.first
+      end
+
       def key_finder_regex(k)
         /#{k} =\\? | #{k}=\\? | #{k}= \\? /i
       end
