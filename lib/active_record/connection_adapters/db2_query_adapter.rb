@@ -18,6 +18,8 @@ module ActiveRecord
 
   module ConnectionAdapters
     class DB2QueryConnection
+      ADAPTER_NAME = "DB2Query"
+
       include DB2Query::DatabaseStatements
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
@@ -35,6 +37,13 @@ module ActiveRecord
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
         connect
+      end
+
+      def adapter_name
+        self.class::ADAPTER_NAME
+      end
+
+      def begin_transaction(options = {})
       end
 
       def connect
