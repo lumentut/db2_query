@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module DB2Query
+  CONNECTION_TYPES = %i[dsn conn_string].freeze
+
   class ConnectionPool < ActiveRecord::ConnectionAdapters::ConnectionPool
     attr_reader :conn_type
 
@@ -15,9 +17,34 @@ module DB2Query
       end
   end
 
+  class ConnectionSpecification #:nodoc:
+    attr_reader :name, :config
+
+    def initialize(name, config)
+      @name, @config = name, config
+    end
+
+    def initialize_dup(original)
+      @config = original.config.dup
+    end
+
+    def to_hash
+      @config.merge(name: @name)
+    end
+
+    class Resolver < ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver
+      def spec(config)
+        pool_name = config if config.is_a?(Symbol)
+        spec = resolve(config, pool_name).symbolize_keys
+        ConnectionSpecification.new(spec.delete(:name) || "primary", spec)
+      end
+    end
+  end
+
   class ConnectionHandler < ActiveRecord::ConnectionAdapters::ConnectionHandler
     def establish_connection(config)
-      resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
+      resolver = ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
+
       spec = resolver.spec(config)
 
       remove_connection(spec.name)
@@ -40,6 +67,9 @@ module DB2Query
   end
 
   module ConnectionHandling
+    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
+    DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
+
     def lookup_connection_handler(handler_key) # :nodoc:
       handler_key = DB2Query::Base.reading_role
       connection_handlers[handler_key] ||= DB2Query::ConnectionHandler.new

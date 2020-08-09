@@ -15,6 +15,12 @@ module DB2Query
       end
     end
 
+    def to_h
+      rows.map do |row|
+        columns.zip(row).each_with_object({}) { |cr, h| h[cr[0].to_sym] = cr[1] }
+      end
+    end
+
     def inspect
       entries = records.take(11).map!(&:inspect)
 

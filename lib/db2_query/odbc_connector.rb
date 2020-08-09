@@ -1,8 +1,8 @@
 # frozen_String_literal: true
 
-module DB2Query
-  CONNECTION_TYPES = %i[dsn conn_string].freeze
+require 'odbc_utf8'
 
+module DB2Query
   class ODBCConnector
     def self.new(type, config)
       conn_type, conn_config = type, config.transform_keys(&:to_sym)
