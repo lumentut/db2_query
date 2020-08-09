@@ -36,6 +36,14 @@ module DB2Query
     def transaction_open?
     end
 
+    def requires_reloading?
+      false
+    end
+
+    def close
+      pool.checkin self
+    end
+
     def connect
       @connection = connector.connect
     end
