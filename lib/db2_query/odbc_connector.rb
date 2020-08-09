@@ -10,7 +10,7 @@ module DB2Query
     end
   end
 
-  class AbstractConnector 
+  class AbstractConnector
     attr_reader :config
 
     def initialize(config)

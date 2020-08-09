@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'db2_query'
-require 'rails'
+require "db2_query"
+require "rails"
 
 module DB2Query
   class Railtie < Rails::Railtie

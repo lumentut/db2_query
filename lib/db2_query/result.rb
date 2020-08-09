@@ -25,7 +25,7 @@ module DB2Query
 
     class Record
       attr_reader :formatters
-    
+
       def initialize(row, columns, formatters)
         @formatters = formatters
         columns.zip(row) do |col, val|
