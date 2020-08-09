@@ -4,7 +4,7 @@ require "test_helper"
 
 class ConnectionTest < ActiveSupport::TestCase
   def setup
-    @handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    @handler = DB2Query::ConnectionHandler.new
     @spec_name = "primary"
     @pool = @handler.establish_connection(DB2Query::Base.configurations["dqunit"])
   end

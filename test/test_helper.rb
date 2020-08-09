@@ -6,9 +6,16 @@ ENV["DQ_CONFIG_PATH"] = __dir__ + "/config.yml"
 require "minitest/autorun"
 require "faker"
 require "db2_query"
+require "byebug"
 
-DB2Query::Base.configurations = DB2Query.config
-DB2Query::Base.establish_connection :dqunit
+DB2Query::Base.initiation do |base|
+  base.configurations = DB2Query.config
+  base.establish_connection :dqunit
+end
+
+class DB2Record < DB2Query::Base
+  self.abstract_class = true
+end
 
 SQL_FILES_DIR = "#{Dir.pwd}/test/sql"
 CREATE_USER_SQL_FILE = SQL_FILES_DIR + "/create_users.sql"

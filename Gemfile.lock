@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    db2_query (0.2.0)
-      activerecord (~> 6.0.3, >= 6.0.3.1)
-      activesupport (~> 6.0.3, >= 6.0.3.1)
+    db2_query (0.2.1)
+      activerecord (~> 6.0.3)
+      activesupport (~> 6.0.3)
       ruby-odbc (~> 0.99999)
 
 GEM
@@ -34,6 +34,7 @@ GEM
       ast (~> 2.4.1)
     rack (2.2.3)
     rainbow (3.0.0)
+    rake (12.3.3)
     regexp_parser (1.7.1)
     rexml (3.2.4)
     rubocop (0.86.0)
@@ -70,6 +71,8 @@ DEPENDENCIES
   db2_query!
   dotenv
   faker
+  minitest (~> 5.0)
+  rake (~> 12.0)
   rubocop
   rubocop-performance
   rubocop-rails

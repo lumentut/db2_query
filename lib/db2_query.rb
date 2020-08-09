@@ -4,8 +4,8 @@ require "yaml"
 require "erb"
 require "active_record"
 require "active_support"
-require "active_record/database_configurations"
 require "db2_query/config"
+require "db2_query/connection_handling"
 
 module DB2Query
   extend ActiveSupport::Autoload
@@ -13,8 +13,8 @@ module DB2Query
   autoload :Version
   autoload :Base
   autoload :Core
-  autoload :ConnectionHandling
   autoload :DatabaseStatements
+  autoload :Connection
   autoload :ODBCConnector
   autoload :Formatter
   autoload :Result

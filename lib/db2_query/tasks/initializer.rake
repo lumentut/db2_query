@@ -6,6 +6,11 @@ DB2_QUERY_INITIALIZER_TEMPLATE ||= <<-EOF
 require "db2_query"
 require "db2_query/formatter"
 
+DB2Query::Base.initiation do |base|
+  base.configurations = base.parent.config
+  base.establish_connection ENV['RAILS_ENV'].to_sym
+end
+
 # Example
 
 class FirstNameFormatter < DB2Query::AbstractFormatter

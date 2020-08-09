@@ -2,9 +2,8 @@
 
 module DB2Query
   class Base
-    include DB2Query::Core
     include ActiveRecord::Inheritance
-    extend ActiveSupport::Concern
+    include DB2Query::Core
     extend ActiveRecord::ConnectionHandling
     extend DB2Query::ConnectionHandling
   end

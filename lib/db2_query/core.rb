@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require "active_record/database_configurations"
+
 module DB2Query
   module Core
     extend ActiveSupport::Concern
 
-    included do |base|
+    included do
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
       end
@@ -14,28 +16,26 @@ module DB2Query
         @@configurations
       end
 
-      class_attribute :default_connection_handler
-
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
-      mattr_accessor :writing_role, instance_accessor: false, default: :writing
-
-      mattr_accessor :reading_role, instance_accessor: false, default: :reading
+      class_attribute :default_connection_handler
 
       def self.connection_handler
-        Thread.current.thread_variable_get("ar_connection_handler") || default_connection_handler
+        Thread.current.thread_variable_get("db2q_connection_handler") || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        Thread.current.thread_variable_set("ar_connection_handler", handler)
+        Thread.current.thread_variable_set("db2q_connection_handler", handler)
       end
 
-      self.default_connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-
-      base.extend ClassMethods
+      self.default_connection_handler = DB2Query::ConnectionHandler.new
     end
 
     module ClassMethods
+      def initiation
+        yield(self) if block_given?
+      end
+
       def attributes(attr_name, format)
         formatters.store(attr_name, format)
       end

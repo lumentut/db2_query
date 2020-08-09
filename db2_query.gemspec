@@ -28,8 +28,8 @@ Gem::Specification.new do |spec|
   spec.files = Dir["{lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
   spec.add_dependency "ruby-odbc", "~> 0.99999"
-  spec.add_dependency "activesupport", "~> 6.0.3", ">= 6.0.3.1"
-  spec.add_dependency "activerecord", "~> 6.0.3", ">= 6.0.3.1"
+  spec.add_dependency "activesupport", "~> 6.0.3"
+  spec.add_dependency "activerecord", "~> 6.0.3"
   spec.add_development_dependency "rubocop"
   spec.add_development_dependency "rubocop-performance"
   spec.add_development_dependency "rubocop-rails"

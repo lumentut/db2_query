@@ -4,28 +4,30 @@ module DB2Query
   CONNECTION_TYPES = %i[dsn conn_string].freeze
 
   class ODBCConnector
-    attr_reader :connector, :conn_type, :conn_config
-
-    def initialize(type, config)
-      @conn_type, @conn_config = type, config.transform_keys(&:to_sym)
-      @connector = DB2Query.const_get("#{conn_type.to_s.camelize}Connector").new
-    end
-
-    def connect
-      connector.connect(conn_config)
+    def self.new(type, config)
+      conn_type, conn_config = type, config.transform_keys(&:to_sym)
+      DB2Query.const_get("#{conn_type.to_s.camelize}Connector").new(conn_config)
     end
   end
 
-  class DsnConnector
-    def connect(config)
+  class AbstractConnector 
+    attr_reader :config
+
+    def initialize(config)
+      @config = config
+    end
+  end
+
+  class DsnConnector < AbstractConnector
+    def connect
       ::ODBC.connect(config[:dsn], config[:uid], config[:pwd])
     rescue ::ODBC::Error => e
       raise ArgumentError, "Unable to activate ODBC DSN connection #{e}"
     end
   end
 
-  class ConnStringConnector
-    def connect(config)
+  class ConnStringConnector < AbstractConnector
+    def connect
       driver = ::ODBC::Driver.new.tap do |d|
         d.attrs = config[:conn_string].transform_keys(&:to_s)
         d.name = "odbc"

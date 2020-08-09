@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class User < DB2Query::Base
+class User < DB2Record
   def all_sql
     "SELECT * FROM LIBTEST.USERS"
   end

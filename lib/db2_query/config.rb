@@ -20,7 +20,7 @@ module DB2Query
 
     def read_config
       erb = ERB.new(config_file.read)
-      YAML.parse(erb.result(binding)).transform
+      YAML.parse(erb.result(binding)).transform.transform_keys(&:to_sym)
     end
 
     def connection_env
