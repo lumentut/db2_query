@@ -186,7 +186,7 @@ class ConnectionPoolTest < ActiveSupport::TestCase
   def test_idle_timeout_configuration
     pool.disconnect!
     spec = DB2Query::Base.connection_pool.spec
-    spec.config.merge!(idle_timeout: "0.02")
+    spec.config[:idle_timeout] = "0.02"
     pool = DB2Query::ConnectionPool.new(spec)
     idle_conn = pool.checkout
     pool.checkin(idle_conn)
@@ -211,7 +211,7 @@ class ConnectionPoolTest < ActiveSupport::TestCase
   def test_disable_flush
     pool.disconnect!
     spec = DB2Query::Base.connection_pool.spec
-    spec.config.merge!(idle_timeout: -5)
+    spec.config[:idle_timeout] = -5
     pool = DB2Query::ConnectionPool.new(spec)
     idle_conn = pool.checkout
     pool.checkin(idle_conn)

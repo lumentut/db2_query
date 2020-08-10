@@ -1,6 +1,6 @@
 # frozen_String_literal: true
 
-require 'odbc_utf8'
+require "odbc_utf8"
 
 module DB2Query
   class ODBCConnector
