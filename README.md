@@ -28,7 +28,7 @@ $ rake db2query:init
 ```
 DB2Query will generate two required files:
 - `config/db2query_database.yml`
-- `config/initializers/db2query`
+- `config/initializers/db2query.rb`
 
 Edit these files according to the requirement.
 
@@ -82,7 +82,7 @@ SQL>
 ```
 
 ## Usage
-Note: Version 0.1.0 use `Db2Query` namespace. Please use `DB2Query` in versions other than it.
+Note: Version 0.1.0 use `Db2Query` namespace. Please use `DB2Query` in versions greater than it.
 
 ### Basic Usage
 Create query class that inherit from `DB2Query::Base` in `app/queries` folder
@@ -145,7 +145,9 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [["id", 10000]]
 ```
 
 ### Available methods
-`DB2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom `records` method.
+`DB2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom methods:
+  1. `records` to convert query result into array of Record objects.
+  2. `to_h` to convert query result into hash with symbolized keys.
 
 ### ActiveRecord Combination
 
