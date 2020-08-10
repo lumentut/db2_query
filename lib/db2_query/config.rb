@@ -22,9 +22,5 @@ module DB2Query
       erb = ERB.new(config_file.read)
       YAML.parse(erb.result(binding)).transform.transform_keys(&:to_sym)
     end
-
-    def connection_env
-      ENV["RAILS_ENV"].to_sym
-    end
   end
 end
