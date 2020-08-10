@@ -567,58 +567,57 @@ class ConnectionPoolTest < ActiveSupport::TestCase
     end
   end
 
-  # TODO
-  # def test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads
-  #   with_single_connection_pool do |pool|
-  #     [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
-  #       conn               = pool.connection # drain the only available connection
-  #       second_thread_done = Concurrent::Event.new
+  def test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads
+    with_single_connection_pool do |pool|
+      [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
+        conn               = pool.connection # drain the only available connection
+        second_thread_done = Concurrent::Event.new
 
-  #       begin
-  #         # create a first_thread and let it get into the FIFO queue first
-  #         first_thread = Thread.new do
-  #           pool.with_connection { second_thread_done.wait }
-  #         end
+        begin
+          # create a first_thread and let it get into the FIFO queue first
+          first_thread = Thread.new do
+            pool.with_connection { second_thread_done.wait }
+          end
 
-  #         # wait for first_thread to get in queue
-  #         Thread.pass until pool.num_waiting_in_queue == 1
+          # wait for first_thread to get in queue
+          Thread.pass until pool.num_waiting_in_queue == 1
 
-  #         # create a different, later thread, that will attempt to do a "group action",
-  #         # but because of the group action semantics it should be able to preempt the
-  #         # first_thread when a connection is made available
-  #         second_thread = Thread.new do
-  #           pool.send(group_action_method)
-  #           second_thread_done.set
-  #         end
+          # create a different, later thread, that will attempt to do a "group action",
+          # but because of the group action semantics it should be able to preempt the
+          # first_thread when a connection is made available
+          second_thread = Thread.new do
+            pool.send(group_action_method)
+            second_thread_done.set
+          end
 
-  #         # wait for second_thread to get in queue
-  #         Thread.pass until pool.num_waiting_in_queue == 2
+          # wait for second_thread to get in queue
+          Thread.pass until pool.num_waiting_in_queue == 2
 
-  #         # return the only available connection
-  #         pool.checkin(conn)
+          # return the only available connection
+          pool.checkin(conn)
 
-  #         # if the second_thread is not able to preempt the first_thread,
-  #         # they will temporarily (until either of them timeouts with ConnectionTimeoutError)
-  #         # deadlock and a join(2) timeout will be reached
-  #         assert second_thread.join(2), "#{group_action_method} is not able to preempt other waiting threads"
+          # if the second_thread is not able to preempt the first_thread,
+          # they will temporarily (until either of them timeouts with ConnectionTimeoutError)
+          # deadlock and a join(2) timeout will be reached
+          assert second_thread.join(2), "#{group_action_method} is not able to preempt other waiting threads"
 
-  #       ensure
-  #         # post test clean up
-  #         failed = !second_thread_done.set?
+        ensure
+          # post test clean up
+          failed = !second_thread_done.set?
 
-  #         if failed
-  #           second_thread_done.set
+          if failed
+            second_thread_done.set
 
-  #           first_thread.join(2)
-  #           second_thread.join(2)
-  #         end
+            first_thread.join(2)
+            second_thread.join(2)
+          end
 
-  #         first_thread.join(10) || raise("first_thread got stuck")
-  #         second_thread.join(10) || raise("second_thread got stuck")
-  #       end
-  #     end
-  #   end
-  # end
+          first_thread.join(10) || raise("first_thread got stuck")
+          second_thread.join(10) || raise("second_thread got stuck")
+        end
+      end
+    end
+  end
 
   def test_clear_reloadable_connections_creates_new_connections_for_waiting_threads_if_necessary
     with_single_connection_pool do |pool|

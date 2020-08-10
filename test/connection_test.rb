@@ -38,7 +38,7 @@ class ConnectionTest < ActiveSupport::TestCase
       }
     }
     DB2Query::Base.configurations = config
-    resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
+    resolver = DB2Query::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
     spec =  resolver.spec(:readonly)
     @handler.establish_connection(spec.to_hash)
 

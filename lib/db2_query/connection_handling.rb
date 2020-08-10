@@ -81,7 +81,7 @@ module DB2Query
       config_or_env ||= DEFAULT_ENV.call.to_sym
       pool_name = primary_class? ? "primary" : name
       self.connection_specification_name = pool_name
-      resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
+      resolver = DB2Query::ConnectionSpecification::Resolver.new(DB2Query::Base.configurations)
 
       config_hash = resolver.resolve(config_or_env, pool_name).symbolize_keys
       config_hash[:name] = pool_name
