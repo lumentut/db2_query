@@ -161,7 +161,7 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [["id", 10000]]
 => #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Dr.Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
 
-### Available Result Ogject methods
+### Available Result Object methods
 `DB2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom methods:
   1. `records` to convert query result into array of Record objects.
   2. `to_h` to convert query result into hash with symbolized keys.
