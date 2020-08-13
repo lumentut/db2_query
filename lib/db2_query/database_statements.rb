@@ -13,11 +13,11 @@ module DB2Query
       query(sql)
     end
 
-    def query_value(sql, name = nil)
+    def query_value(sql)
       single_value_from_rows(query(sql))
     end
 
-    def query_values(sql, name = nil)
+    def query_values(sql)
       query(sql).map(&:first)
     end
 

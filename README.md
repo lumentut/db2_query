@@ -45,7 +45,6 @@ At `db2query_database.yml` we can use two type of connection:
 ```yml
 development:
   primary:                          # Connection String Example
-    adapter: db2_query
     conn_string:
       driver: DB2
       database: SAMPLE
@@ -56,8 +55,7 @@ development:
       protocol: IPC
       uid: <%= ENV["DB2EC_UID"] %>
       pwd: <%= ENV["DB2EC_PWD"] %>
-  secondary:
-    adapter: db2_query             # DSN Example
+  secondary:             # DSN Example
     dsn: iseries
     uid: <%= ENV["ISERIES_UID"] %>
     pwd: <%= ENV["ISERIES_PWD"] %>
@@ -92,7 +90,26 @@ class User < DB2Query::Base
     SELECT * FROM LIBTEST.USERS WHERE id = ?
   SQL
 end
+
+class User < DB2query::Base
+  query :id_greater_than, -> id {
+    exec_query({}, "SELECT * FROM LIBTEST.USERS WHERE id > ?", [id])
+  }
+
+  query :insert_record, -> *args {
+    execute(
+      "INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", args
+    )
+  }
+end
 ```
+
+The query method must have 2 inputs:
+1. Method name
+2. Body (can be an SQL statement or lamda).
+
+The lambda is used to facilitate us in using `built-in methods` as shown at two query methods above.
+
 Or use a normal sql method (don't forget the `_sql` suffix)
 ```ruby
 class User < DB2Query::Base 
@@ -144,10 +161,19 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [["id", 10000]]
 => #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Dr.Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
 
-### Available methods
+### Available Result Ogject methods
 `DB2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom methods:
   1. `records` to convert query result into array of Record objects.
   2. `to_h` to convert query result into hash with symbolized keys.
+
+### Built-in methods
+These built-in methods are delegated to `DB2Query::Connection` methods
+  1. `query_rows(sql)`
+  2. `query_value(sql)`
+  3. `query_values(sql)`
+  4. `execute(sql)`
+  5. `exec_query(formatters, sql, args = [])`
+They behave just likely `ActiveRecords` connection's public methods.
 
 ### ActiveRecord Combination
 

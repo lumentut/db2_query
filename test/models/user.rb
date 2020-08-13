@@ -21,6 +21,10 @@ class User < DB2Record
     SELECT * FROM LIBTEST.USERS WHERE id > ?
   SQL
 
+  query :id_greater_than, -> id {
+    exec_query({}, "SELECT * FROM LIBTEST.USERS WHERE id > ?", [id])
+  }
+
   query :insert_record, -> *args {
     execute(
       "INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", args

@@ -70,6 +70,8 @@ module DB2Query
 
       delegate :execute, to: :connection
 
+      delegate :exec_query, to: :connection
+
       private
         def formatters
           @formatters ||= Hash.new

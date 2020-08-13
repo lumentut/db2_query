@@ -28,9 +28,14 @@ class ExceptionTest < ActiveSupport::TestCase
       User.by_name_and_email user.id, user.email
     end
 
+    users1 = users2 = nil
     assert_nothing_raised do
-      User.id_gt 10005
+      users1 = User.id_gt 10005
+      users2 = User.id_greater_than 10005
     end
+
+    assert_equal users1.records.length, users2.records.length
+    assert_equal users1.to_h, users2.to_h
 
     exception = assert_raise(Exception) { User.by_name_and_email user.email }
     assert_equal("wrong number of arguments (given 1, expected 2)", exception.message)
