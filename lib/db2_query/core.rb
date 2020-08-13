@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_record/database_configurations"
-require "active_support/core_ext/module/delegation"
 
 module DB2Query
   module Core
@@ -62,16 +61,6 @@ module DB2Query
         end
       end
 
-      delegate :query_rows, to: :connection
-
-      delegate :query_value, to: :connection
-
-      delegate :query_values, to: :connection
-
-      delegate :execute, to: :connection
-
-      delegate :exec_query, to: :connection
-
       private
         def formatters
           @formatters ||= Hash.new
@@ -95,6 +84,8 @@ module DB2Query
             query(method_name, sql_statement)
 
             method(method_name).call(*args)
+          elsif connection.respond_to?(method_name)
+            connection.send(method_name, *args)
           else
             super
           end
