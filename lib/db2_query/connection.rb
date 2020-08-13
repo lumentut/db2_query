@@ -6,6 +6,7 @@ module DB2Query
 
     include DB2Query::DatabaseStatements
     include ActiveSupport::Callbacks
+
     define_callbacks :checkout, :checkin
 
     set_callback :checkin, :after, :enable_lazy_transactions!
@@ -81,7 +82,7 @@ module DB2Query
           msg << "it is already in use by a different thread: #{@owner}. " \
                   "Current thread: #{Thread.current}."
         end
-        raise ActiveRecordError, msg
+        raise DB2Query::Error, msg
       end
 
       @owner = Thread.current
@@ -124,14 +125,14 @@ module DB2Query
       when RuntimeError
         exception
       else
-        ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds)
+        DB2Query::StatementInvalid.new(message, sql: sql, binds: binds)
       end
     end
 
     def expire
       if in_use?
         if @owner != Thread.current
-          raise ActiveRecordError, "Cannot expire connection, " \
+          raise DB2Query::Error, "Cannot expire connection, " \
             "it is owned by a different thread: #{@owner}. " \
             "Current thread: #{Thread.current}."
         end
@@ -139,7 +140,7 @@ module DB2Query
         @idle_since = Concurrent.monotonic_time
         @owner = nil
       else
-        raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
+        raise DB2Query::Error, "Cannot expire connection, it is not currently leased."
       end
     end
 
@@ -151,11 +152,11 @@ module DB2Query
           @owner = Thread.current
         end
       else
-        raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
+        raise DB2Query::Error, "Cannot steal connection, it is not currently leased."
       end
     end
 
-    def seconds_idle # :nodoc:
+    def seconds_idle
       return 0 if in_use?
       Concurrent.monotonic_time - @idle_since
     end

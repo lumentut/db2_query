@@ -17,10 +17,19 @@ class User < DB2Record
     SELECT * FROM LIBTEST.USERS WHERE id = ?
   SQL
 
-  def insert_record_sql
-    "INSERT INTO users (id, first_name, last_name, email)
-    VALUES (10010, John, Doe, john.doe@gmail.com)"
-  end
+  query :id_gt, <<-SQL
+    SELECT * FROM LIBTEST.USERS WHERE id > ?
+  SQL
+
+  query :insert_record, -> *args {
+    execute(
+      "INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", args
+    )
+  }
+
+  query :delete_id, -> id {
+    execute "DELETE FROM users WHERE id = ?", id
+  }
 
   def non_string_sql
     0

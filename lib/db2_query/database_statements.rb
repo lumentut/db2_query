@@ -22,16 +22,12 @@ module DB2Query
     end
 
     def execute(sql, args = [])
-      if args.empty?
-        @connection.do(sql)
-      else
-        @connection.do(sql, *args)
-      end
+      @connection.do(sql, *args)
     end
 
-    def exec_query(sql, formatter = {}, args = [], name = "SQL")
+    def exec_query(formatters, sql, args = [])
       binds, args = extract_binds_from_sql(sql, args)
-      log(sql, name, binds, args) do
+      log(sql, "SQL", binds, args) do
         begin
           if args.empty?
             stmt = @connection.run(sql)
@@ -43,7 +39,7 @@ module DB2Query
         ensure
           stmt.drop unless stmt.nil?
         end
-        DB2Query::Result.new(columns, rows, formatter)
+        DB2Query::Result.new(columns, rows, formatters)
       end
     end
 
@@ -54,36 +50,36 @@ module DB2Query
       end
 
       def key_finder_regex(k)
-        /#{k} =\\? | #{k}=\\? | #{k}= \\? /i
+        /#{k} .\\? | #{k}.\\? | #{k}. \\? /i
       end
 
       def extract_binds_from_sql(sql, args)
         question_mark_positions = sql.enum_for(:scan, /\?/i).map { Regexp.last_match.begin(0) }
-        args = args.first.is_a?(Hash) ? args.first : args.is_a?(Array) ? args : [args]
+        args = args.first.is_a?(Hash) ? args.first : args
         given, expected = args.length, question_mark_positions.length
 
         if given != expected
-          raise ArgumentError, "wrong number of arguments (given #{given}, expected #{expected})"
+          raise DB2Query::Error, "wrong number of arguments (given #{given}, expected #{expected})"
         end
 
         if args.is_a?(Hash)
           binds = args.map do |key, value|
             position = sql.enum_for(:scan, key_finder_regex(key)).map { Regexp.last_match.begin(0) }
             if position.empty?
-              raise ArgumentError, "Column name: `#{key}` not found inside sql statement."
+              raise DB2Query::Error, "Column name: `#{key}` not found inside sql statement."
             elsif position.length > 1
-              raise ArgumentError, "Can't handle such this kind of sql. Please refactor your sql."
+              raise DB2Query::Error, "Can't handle such this kind of sql. Please refactor your sql."
             else
               index = position[0]
             end
 
-            OpenStruct.new({ name: key.to_s, value: value, index: index })
+            DB2Query::Bind.new(key.to_s, value, index)
           end
           binds = binds.sort_by { |bind| bind.index }
           [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value }]
         elsif question_mark_positions.length == 1 && args.length == 1
-          column = sql[/(.*?) = \?|(.*?) =\?|(.*?)= \?|(.*?)=\?/m, 1].split.last.downcase
-          bind = OpenStruct.new({ name: column, value: args })
+          column = sql[/(.*?) . \?|(.*?) .\?|(.*?). \?|(.*?).\?/m, 1].split.last.downcase
+          bind = DB2Query::Bind.new(column.gsub(/[)(]/, ''), args, 0)
           [[[bind, bind.value]], bind.value]
         else
           [args.map { |arg| [nil, arg] }, args]

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "test_helper"
+require "models/user"
+
 class ExceptionTest < ActiveSupport::TestCase
   def test_given_args_bigger_than_expected
     exception = assert_raise(Exception) { User.all 100 }
@@ -25,13 +28,19 @@ class ExceptionTest < ActiveSupport::TestCase
       User.by_name_and_email user.id, user.email
     end
 
+    assert_nothing_raised do
+      User.id_gt 10005
+    end
+
     exception = assert_raise(Exception) { User.by_name_and_email user.email }
     assert_equal("wrong number of arguments (given 1, expected 2)", exception.message)
   end
 
-  def test_not_implemented
-    exception = assert_raise(Exception) { User.insert_record }
-    assert_equal("NotImplementedError", exception.message)
+  def test_insert
+    assert_nothing_raised do
+      User.insert_record 10010, 'John', 'Doe', 'john.doe@gmail.com'
+      User.delete_id 10010
+    end
   end
 
   def test_non_string

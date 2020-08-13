@@ -16,13 +16,17 @@ module DB2Query
     def initialize(config)
       @config = config
     end
+
+    def connect
+      raise "abstract method #connect must be defined"
+    end
   end
 
   class DsnConnector < AbstractConnector
     def connect
       ::ODBC.connect(config[:dsn], config[:uid], config[:pwd])
     rescue ::ODBC::Error => e
-      raise ArgumentError, "Unable to activate ODBC DSN connection #{e}"
+      raise DB2Query::Error, "Unable to activate ODBC DSN connection #{e}"
     end
   end
 
@@ -34,7 +38,7 @@ module DB2Query
       end
       ::ODBC::Database.new.drvconnect(driver)
     rescue ::ODBC::Error => e
-      raise ArgumentError, "Unable to activate ODBC Conn String connection #{e}"
+      raise DB2Query::Error, "Unable to activate ODBC Conn String connection #{e}"
     end
   end
 end

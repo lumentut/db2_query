@@ -21,7 +21,7 @@ module DB2Query
 
   class AbstractFormatter
     def format(value)
-      raise NotImplementedError, "Implement format method in your subclass."
+      raise DB2Query::Error, "Implement format method in your subclass."
     end
   end
 end

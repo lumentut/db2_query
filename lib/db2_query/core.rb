@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/database_configurations"
+require "active_support/core_ext/module/delegation"
 
 module DB2Query
   module Core
@@ -40,21 +41,34 @@ module DB2Query
         formatters.store(attr_name, format)
       end
 
-      def query(name, sql_statement)
+      def query(name, body)
         if defined_method_name?(name)
-          raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
+          raise DB2Query::Error, "You tried to define a scope named \"#{name}\" " \
             "on the model \"#{self.name}\", but DB2Query already defined " \
             "a class method with the same name."
         end
 
-        unless sql_statement.strip.match?(/^select/i)
-          raise NotImplementedError
-        end
-
-        self.class.define_method(name) do |*args|
-          connection.exec_query(sql_statement, formatters, args)
+        if body.respond_to?(:call)
+          singleton_class.define_method(name) do |*args|
+            body.call(*args)
+          end
+        elsif body.is_a?(String)
+          sql = body
+          singleton_class.define_method(name) do |*args|
+            connection.exec_query(formatters, sql, args)
+          end
+        else
+          raise DB2Query::Error, "The query body needs to be callable or is a sql string"
         end
       end
+
+      delegate :query_rows, to: :connection
+
+      delegate :query_value, to: :connection
+
+      delegate :query_values, to: :connection
+
+      delegate :execute, to: :connection
 
       private
         def formatters
@@ -73,7 +87,7 @@ module DB2Query
             sql_statement = allocate.method(sql_method).call
 
             unless sql_statement.is_a? String
-              raise ArgumentError, "Query methods must return a SQL statement string!"
+              raise DB2Query::Error, "Query methods must return a SQL statement string!"
             end
 
             query(method_name, sql_statement)

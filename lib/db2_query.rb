@@ -5,6 +5,7 @@ require "erb"
 require "active_record"
 require "active_support"
 require "db2_query/config"
+require "db2_query/error"
 require "db2_query/connection_handling"
 
 module DB2Query
@@ -12,6 +13,7 @@ module DB2Query
 
   autoload :Version
   autoload :Base
+  autoload :Bind
   autoload :Core
   autoload :DatabaseStatements
   autoload :Connection

@@ -17,7 +17,7 @@ module DB2Query
       end
   end
 
-  class ConnectionSpecification #:nodoc:
+  class ConnectionSpecification
     attr_reader :name, :config
 
     def initialize(name, config)
@@ -70,12 +70,12 @@ module DB2Query
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
-    def lookup_connection_handler(handler_key) # :nodoc:
+    def lookup_connection_handler(handler_key)
       handler_key = DB2Query::Base.reading_role
       connection_handlers[handler_key] ||= DB2Query::ConnectionHandler.new
     end
 
-    def resolve_config_for_connection(config_or_env) # :nodoc:
+    def resolve_config_for_connection(config_or_env)
       raise "Anonymous class is not allowed." unless name
 
       config_or_env ||= DEFAULT_ENV.call.to_sym
@@ -101,7 +101,7 @@ module DB2Query
     end
 
     private
-      def swap_connection_handler(handler, &blk) # :nodoc:
+      def swap_connection_handler(handler, &blk)
         old_handler, DB2Query::Base.connection_handler = DB2Query::Base.connection_handler, handler
         return_value = yield
         return_value
