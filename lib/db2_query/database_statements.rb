@@ -79,7 +79,7 @@ module DB2Query
           [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value }]
         elsif question_mark_positions.length == 1 && args.length == 1
           column = sql[/(.*?) . \?|(.*?) .\?|(.*?). \?|(.*?).\?/m, 1].split.last.downcase
-          bind = DB2Query::Bind.new(column.gsub(/[)(]/, ''), args, 0)
+          bind = DB2Query::Bind.new(column.gsub(/[)(]/, ""), args, 0)
           [[[bind, bind.value]], bind.value]
         else
           [args.map { |arg| [nil, arg] }, args]

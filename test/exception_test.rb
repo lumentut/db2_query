@@ -38,7 +38,7 @@ class ExceptionTest < ActiveSupport::TestCase
 
   def test_insert
     assert_nothing_raised do
-      User.insert_record 10010, 'John', 'Doe', 'john.doe@gmail.com'
+      User.insert_record 10010, "John", "Doe", "john.doe@gmail.com"
       User.delete_id 10010
     end
   end
