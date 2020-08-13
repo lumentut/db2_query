@@ -5,12 +5,10 @@ DB2_QUERY_DATABASE_TEMPLATE ||= <<-EOF
 # Database configuration example
 development:
   primary:
-    adapter: db2_query
     dsn: iseries
     uid: <%= ENV["ISERIES_UID"] %>
     pwd: <%= ENV["ISERIES_PWD"] %>
   secondary:
-    adapter: db2_query
     conn_string:
       driver: DB2
       database: ARUNIT2
@@ -23,12 +21,10 @@ development:
       pwd: <%= ENV["DB2EC_PWD"] %>
 test:
   primary:
-    adapter: db2_query
     dsn: iseries
     uid: <%= ENV["ISERIES_UID"] %>
     pwd: <%= ENV["ISERIES_PWD"] %>
   secondary:
-    adapter: db2_query
     conn_string:
       driver: DB2
       database: ARUNIT2
