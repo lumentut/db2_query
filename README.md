@@ -182,8 +182,8 @@ Create an abstract class that inherit from `ActiveRecord::Base`
 class Db2Record < ActiveRecord::Base
   self.abstract_class = true
 
-  def self.query(sql, formatter = {}, args = [])
-    DB2Query::Base.connection.exec_query(sql, formatter, args).to_a.map(&:deep_symbolize_keys)
+  def self.query(formatter, sql, args = [])
+    DB2Query::Base.connection.exec_query(formatter, sql, args).to_a.map(&:deep_symbolize_keys)
   end
 end
 ```
@@ -193,7 +193,7 @@ Utilize the goodness of rails model `scope`
 class User < Db2Record
   scope :by_name, -> *args {
     query(
-      "SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ?", {}, args
+      {}, "SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_name = ?", args
     )
   }
 end
