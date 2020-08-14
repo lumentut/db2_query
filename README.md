@@ -44,7 +44,7 @@ At `db2query_database.yml` we can use two type of connection:
 2. Connection String config
 ```yml
 development:
-  primary:                          # Connection String Example
+  primary: # Connection String Example
     conn_string:
       driver: DB2
       database: SAMPLE
@@ -55,7 +55,7 @@ development:
       protocol: IPC
       uid: <%= ENV["DB2EC_UID"] %>
       pwd: <%= ENV["DB2EC_PWD"] %>
-  secondary:             # DSN Example
+  secondary:  # DSN Example
     dsn: iseries
     uid: <%= ENV["ISERIES_UID"] %>
     pwd: <%= ENV["ISERIES_PWD"] %>
