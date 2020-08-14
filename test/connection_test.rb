@@ -23,7 +23,6 @@ class ConnectionTest < ActiveSupport::TestCase
   def test_establish_connection_uses_spec_name
     old_config = DB2Query::Base.configurations
     config = { "readonly" => {
-      "adapter" => "db2_query",
         "conn_string" => {
           "driver"  => "DB2",
           "database"  => "ARUNIT2",
