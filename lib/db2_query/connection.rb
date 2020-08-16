@@ -43,6 +43,7 @@ module DB2Query
 
     def close
       pool.checkin self
+      pool.flush!
     end
 
     def connect
@@ -60,10 +61,11 @@ module DB2Query
     alias reset! reconnect!
 
     def disconnect!
-      if @connection.connected?
-        @connection.commit
-        @connection.disconnect
-      end
+      @connection.disconnect
+    end
+
+    def discard!
+      @connection = nil
     end
 
     def check_version

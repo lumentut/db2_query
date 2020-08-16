@@ -7,6 +7,7 @@ module DB2Query
       stmt.to_a
     ensure
       stmt.drop unless stmt.nil?
+      close
     end
 
     def query_rows(sql)
@@ -23,6 +24,7 @@ module DB2Query
 
     def execute(sql, args = [])
       @connection.do(sql, *args)
+      close
     end
 
     def exec_query(formatters, sql, args = [])
@@ -38,6 +40,7 @@ module DB2Query
           rows = stmt.to_a
         ensure
           stmt.drop unless stmt.nil?
+          close
         end
         DB2Query::Result.new(columns, rows, formatters)
       end
