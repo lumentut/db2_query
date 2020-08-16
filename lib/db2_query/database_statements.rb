@@ -29,6 +29,7 @@ module DB2Query
     def exec_query(formatters, sql, args = [])
       binds, args = extract_binds_from_sql(sql, args)
       log(sql, "SQL", binds, args) do
+        sql = exec_query_sql(sql)
         begin
           if args.empty?
             stmt = @connection.run(sql)
@@ -85,6 +86,22 @@ module DB2Query
           [[[bind, bind.value]], bind.value]
         else
           [args.map { |arg| [nil, arg] }, args]
+        end
+      end
+
+      def iud_sql?(sql)
+        sql.match?(/insert into|update|delete/i)
+      end
+
+      def iud_ref_table(sql)
+        sql.match?(/delete/i) ? "OLD TABLE" : "NEW TABLE"
+      end
+
+      def exec_query_sql(sql)
+        if iud_sql?(sql)
+          "SELECT * FROM #{iud_ref_table(sql)} (#{sql})"
+        else
+          sql
         end
       end
   end

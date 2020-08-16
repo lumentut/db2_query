@@ -25,15 +25,17 @@ class User < DB2Record
     exec_query({}, "SELECT * FROM LIBTEST.USERS WHERE id > ?", [id])
   }
 
-  query :insert_record, -> *args {
-    execute(
-      "INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", args
-    )
-  }
+  query :insert_record, <<-SQL
+    INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)
+  SQL
 
-  query :delete_id, -> id {
-    execute "DELETE FROM users WHERE id = ?", id
-  }
+  query :update_record, <<-SQL
+    UPDATE LIBTEST.USERS SET email = ? WHERE id = ?
+  SQL
+
+  query :delete_record, <<-SQL
+    DELETE FROM users WHERE id = ?
+  SQL
 
   def non_string_sql
     0

@@ -9,8 +9,6 @@ module DB2Query
 
     define_callbacks :checkout, :checkin
 
-    set_callback :checkin, :after, :enable_lazy_transactions!
-
     attr_accessor :pool
     attr_reader :owner, :connector, :lock
     alias :in_use? :owner
@@ -26,15 +24,6 @@ module DB2Query
 
     def adapter_name
       self.class::ADAPTER_NAME
-    end
-
-    def current_transaction
-    end
-
-    def begin_transaction(options = {})
-    end
-
-    def transaction_open?
     end
 
     def requires_reloading?
@@ -66,13 +55,6 @@ module DB2Query
 
     def discard!
       @connection = nil
-    end
-
-    def check_version
-    end
-
-    def enable_lazy_transactions!
-      @lazy_transactions_enabled = true
     end
 
     def lease

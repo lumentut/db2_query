@@ -41,13 +41,6 @@ class ExceptionTest < ActiveSupport::TestCase
     assert_equal("wrong number of arguments (given 1, expected 2)", exception.message)
   end
 
-  def test_insert
-    assert_nothing_raised do
-      User.insert_record 10010, "John", "Doe", "john.doe@gmail.com"
-      User.delete_id 10010
-    end
-  end
-
   def test_non_string
     exception = assert_raise(Exception) { User.non_string }
     assert_equal("Query methods must return a SQL statement string!", exception.message)

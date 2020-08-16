@@ -9,8 +9,12 @@ module DB2Query
       super(columns, rows, column_types)
     end
 
+    def record
+      @record ||= Record.new(rows[0], columns, formatters)
+    end
+
     def records
-      @records ||= rows.map do |row|
+        @records ||= rows.map do |row|
         Record.new(row, columns, formatters)
       end
     end
@@ -26,7 +30,7 @@ module DB2Query
 
       entries[10] = "..." if entries.size == 11
 
-      "#<#{self.class.name} @records=[#{entries.join(', ')}]>"
+      "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
 
     class Record
