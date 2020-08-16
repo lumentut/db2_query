@@ -24,7 +24,6 @@ module DB2Query
 
     def execute(sql, args = [])
       @connection.do(sql, *args)
-      close
     end
 
     def exec_query(formatters, sql, args = [])

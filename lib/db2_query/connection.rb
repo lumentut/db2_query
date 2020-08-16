@@ -43,7 +43,7 @@ module DB2Query
 
     def close
       pool.checkin self
-      pool.flush!
+      pool.flush
     end
 
     def connect
