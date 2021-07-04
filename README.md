@@ -139,10 +139,10 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [[nil, 10000]]
 ```
 Or with hash arguments input
 ```ruby
-class User < Db2Query::Base 
-	def  by_name_and_email_sql
-		"SELECT * FROM LIBTEST.USERS WHERE $first_name = ? AND $email = ?"
-	end
+class User < Db2Query::Base
+  def by_name_and_email_sql
+    "SELECT * FROM LIBTEST.USERS WHERE $first_name = ? AND $email = ?"
+  end
 end
 ```
 ```bash
@@ -156,10 +156,10 @@ For a reusable sql, we can extend it by using a combination of `extention` and `
 class User < Db2Query::Base
     # reusable SQL
 	_SQL = -> extention {
-		sql_with_extention("SELECT * FROM LIBTEST.USERS WHERE @extention", extention)
-	}
+    sql_with_extention("SELECT * FROM LIBTEST.USERS WHERE @extention", extention)
+  }
     # implementation
-    query :by_email, _SQL.("$email = ?")
+  query :by_email, _SQL.("$email = ?")
 end
 ```
 ```bash
@@ -172,9 +172,9 @@ For an array consist list of inputs, we can use `fetch_list` method and `@list` 
 
 ```ruby
 class User < Db2Query
-	query :by_ids, -> ids {
-		fetch_list("SELECT * FROM LIBTEST.USERS WHERE ID IN (@list)", ids)
-	}
+  query :by_ids, -> ids {
+    fetch_list("SELECT * FROM LIBTEST.USERS WHERE ID IN (@list)", ids)
+  }
 end
 ```
 ```bash
