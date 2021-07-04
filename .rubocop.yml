@@ -5,9 +5,9 @@ require:
 AllCops:
   # Include:
   #   - './lib/**/*'
-  # Exclude:
-  #   - './test/dummy/**/*'
-  #   - './bin/**'
+  Exclude:
+    - './test/dummy/**/*'
+    - './bin/**'
   TargetRubyVersion: 2.5
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.

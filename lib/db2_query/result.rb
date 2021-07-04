@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DB2Query
+module Db2Query
   class Result < ActiveRecord::Result
     attr_reader :formatters
 
@@ -9,12 +9,16 @@ module DB2Query
       super(columns, rows, column_types)
     end
 
+    def includes_column?(name)
+      @columns.include? name
+    end
+
     def record
       @record ||= Record.new(rows[0], columns, formatters)
     end
 
     def records
-        @records ||= rows.map do |row|
+      @records ||= rows.map do |row|
         Record.new(row, columns, formatters)
       end
     end
@@ -63,7 +67,7 @@ module DB2Query
           column = col.downcase
           format_name = formatters[column.to_sym]
           unless format_name.nil?
-            formatter = DB2Query::Formatter.lookup(format_name)
+            formatter = Db2Query::Formatter.lookup(format_name)
             val = formatter.format(val)
           end
           [column, val]

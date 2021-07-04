@@ -1,48 +1,32 @@
 # frozen_string_literal: true
 
+require "db2_query"
+
 DB2_QUERY_DATABASE_TEMPLATE ||= <<-EOF
 # frozen_string_literal: true
-# Database configuration example
+
 development:
-  primary:
-    dsn: iseries
-    uid: <%= ENV["ISERIES_UID"] %>
-    pwd: <%= ENV["ISERIES_PWD"] %>
-  secondary:
-    conn_string:
-      driver: DB2
-      database: ARUNIT2
-      dbalias: ARUNIT2
-      hostname: LOCALHOST
-      currentschema: LIBTEST
-      port: "0"
-      protocol: IPC
-      uid: <%= ENV["DB2EC_UID"] %>
-      pwd: <%= ENV["DB2EC_PWD"] %>
+  dsn: TODO
+  pool: 5
+  timeout: 5
+
 test:
-  primary:
-    dsn: iseries
-    uid: <%= ENV["ISERIES_UID"] %>
-    pwd: <%= ENV["ISERIES_PWD"] %>
-  secondary:
-    conn_string:
-      driver: DB2
-      database: ARUNIT2
-      dbalias: ARUNIT2
-      hostname: LOCALHOST
-      currentschema: LIBTEST
-      port: "0"
-      protocol: IPC
-      uid: <%= ENV["DB2EC_UID"] %>
-      pwd: <%= ENV["DB2EC_PWD"] %>
+  dsn: TODO
+  pool: 5
+  timeout: 5
+
+production:
+  dsn: TODO
+  pool: 5
+  timeout: 5
 EOF
 
 namespace :db2query do
   desc "Create Database configuration file"
   task :database do
-    database_path = "#{Rails.root}/config/db2query_database.yml"
+    database_path = "#{Rails.root}/config/db2query.yml"
     if File.exist?(database_path)
-      raise ArgumentError, "File exists."
+      raise Db2Query::Error, "Db2Query database config file exists, please check first"
     else
       puts "  Creating database config file ..."
       File.open(database_path, "w") do |file|

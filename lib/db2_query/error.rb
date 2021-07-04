@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DB2Query
+module Db2Query
   class Error < StandardError
   end
 

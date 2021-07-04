@@ -1,25 +1,22 @@
-# frozen_string_literal:true
+# frozen_string_literal: true
 
-require "yaml"
-require "erb"
 require "active_record"
 require "active_support"
-require "db2_query/config"
-require "db2_query/error"
-require "db2_query/connection_handling"
+require "active_support/concurrency/load_interlock_aware_monitor"
+require "connection_pool"
+require "odbc_utf8"
 
-module DB2Query
+module Db2Query
   extend ActiveSupport::Autoload
 
   autoload :Version
-  autoload :Base
-  autoload :Bind
-  autoload :Core
-  autoload :DatabaseStatements
+  autoload :Config
   autoload :Connection
-  autoload :ODBCConnector
-  autoload :Formatter
+  autoload :Core
   autoload :Result
+  autoload :Logger
+  autoload :Base
+  autoload :Error
 
   require "db2_query/railtie" if defined?(Rails)
 end

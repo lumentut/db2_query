@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DB2Query
+module Db2Query
   module Formatter
     def self.register(name, klass)
       self.format_registry.store(name.to_sym, klass.new)
@@ -21,7 +21,7 @@ module DB2Query
 
   class AbstractFormatter
     def format(value)
-      raise DB2Query::Error, "Implement format method in your subclass."
+      raise Db2Query::Error, "Implement format method in your subclass."
     end
   end
 end

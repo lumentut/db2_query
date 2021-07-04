@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-module DB2Query
+module Db2Query
   class Base
-    include ActiveRecord::Inheritance
-    include DB2Query::Core
-    extend ActiveRecord::ConnectionHandling
-    extend DB2Query::ConnectionHandling
+    include Config
+    include Core
   end
 end

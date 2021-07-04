@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+development:
+  dsn: ARUNIT
+  pool: 5
+  timeout: 5
+
+test:
+  dsn: ARUNIT
+  pool: 5
+  timeout: 5
+
+production:
+  dsn: ARUNIT
+  pool: 5
+  timeout: 5

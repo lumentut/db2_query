@@ -1,37 +1,36 @@
 # frozen_string_literal: true
 
-require "active_record/database_configurations"
+module Db2Query
+  class DbClient
+    attr_reader :dsn
 
-module DB2Query
-  module Core
-    extend ActiveSupport::Concern
+    delegate :run, :do, to: :client
 
-    included do
-      def self.configurations=(config)
-        @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
-      end
-      self.configurations = {}
-
-      def self.configurations
-        @@configurations
-      end
-
-      mattr_accessor :connection_handlers, instance_accessor: false, default: {}
-
-      class_attribute :default_connection_handler
-
-      def self.connection_handler
-        Thread.current.thread_variable_get("db2q_connection_handler") || default_connection_handler
-      end
-
-      def self.connection_handler=(handler)
-        Thread.current.thread_variable_set("db2q_connection_handler", handler)
-      end
-
-      self.default_connection_handler = DB2Query::ConnectionHandler.new
+    def initialize(dsn)
+      @dsn = dsn
+      @client = retrieve_db_client
     end
 
-    module ClassMethods
+    def retrieve_db_client
+      ODBC.connect(dsn)
+    end
+
+    def client
+      unless @client.connected?
+        @client = retrieve_db_client
+      end
+      @client
+    end
+  end
+
+  module Core
+    extend ActiveSupport::Concern
+    included do
+      @@connection = nil
+      @@mutex = Mutex.new
+    end
+
+    class_methods do
       def initiation
         yield(self) if block_given?
       end
@@ -40,9 +39,25 @@ module DB2Query
         formatters.store(attr_name, format)
       end
 
+      def connection
+        @@connection || create_connection
+      end
+
+      def create_connection
+        @@mutex.synchronize do
+          return @@connection if @@connection
+          @@connection = Connection.new(config) { DbClient.new(config[:dsn]) }
+        end
+      end
+
+      def establish_connection
+        load_database_configurations
+        create_connection
+      end
+
       def query(name, body)
         if defined_method_name?(name)
-          raise DB2Query::Error, "You tried to define a scope named \"#{name}\" " \
+          raise Db2Query::Error, "You tried to define a scope named \"#{name}\" " \
             "on the model \"#{self.name}\", but DB2Query already defined " \
             "a class method with the same name."
         end
@@ -52,13 +67,32 @@ module DB2Query
             body.call(*args)
           end
         elsif body.is_a?(String)
-          sql = body
+          sql = body.strip
           singleton_class.define_method(name) do |*args|
             connection.exec_query(formatters, sql, args)
           end
         else
-          raise DB2Query::Error, "The query body needs to be callable or is a sql string"
+          raise Db2Query::Error, "The query body needs to be callable or is a sql string"
         end
+      end
+      alias define query
+
+      def fetch(sql, args)
+        validate_sql(sql)
+        connection.exec_query({}, sql, args)
+      end
+
+      def fetch_list(sql, args)
+        validate_sql(sql)
+        raise Db2Query::Error, "Missing @list pointer at SQL" if sql.scan(/\@list+/).length == 0
+        raise Db2Query::Error, "The arguments should be an array of list" unless args.is_a?(Array)
+        connection.exec_query({}, sql.gsub("@list", "'#{args.join("', '")}'"), [])
+      end
+
+      def sql_with_extention(sql, extention)
+        validate_sql(sql)
+        raise Db2Query::Error, "Missing @extention pointer at SQL" if sql.scan(/\@extention+/).length == 0
+        sql.gsub("@extention", extention.strip)
       end
 
       private
@@ -78,10 +112,17 @@ module DB2Query
             sql_statement = allocate.method(sql_method).call
 
             unless sql_statement.is_a? String
-              raise DB2Query::Error, "Query methods must return a SQL statement string!"
+              raise Db2Query::Error, "Query methods must return a SQL statement string!"
             end
 
             query(method_name, sql_statement)
+
+            if args[0].is_a?(Hash)
+              keys = sql_statement.scan(/\$\S+/).map { |key| key.gsub!(/[$=]/, "") }
+              rearrange_args = {}
+              keys.each { |key| rearrange_args[key.to_sym] = args[0][key.to_sym] }
+              args[0] = rearrange_args
+            end
 
             method(method_name).call(*args)
           elsif connection.respond_to?(method_name)
@@ -89,6 +130,10 @@ module DB2Query
           else
             super
           end
+        end
+
+        def validate_sql(sql)
+          raise Db2Query::Error, "SQL have to be in string format" unless sql.is_a?(String)
         end
     end
   end

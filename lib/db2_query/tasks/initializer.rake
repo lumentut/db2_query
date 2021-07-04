@@ -1,25 +1,24 @@
 # frozen_string_literal: true
 
+require "db2_query"
+
 DB2_QUERY_INITIALIZER_TEMPLATE ||= <<-EOF
 # frozen_string_literal: true
-
 require "db2_query"
 require "db2_query/formatter"
 
-DB2Query::Base.initiation do |base|
-  base.configurations = base.parent.config
-  base.establish_connection ENV['RAILS_ENV'].to_sym
+Db2Query::Base.initiation do |base|
+  base.establish_connection
 end
 
 # Example
-
-class FirstNameFormatter < DB2Query::AbstractFormatter
+class FirstNameFormatter < Db2Query::AbstractFormatter
   def format(value)
     "Dr." + value
   end
 end
 
-DB2Query::Formatter.registration do |format|
+Db2Query::Formatter.registration do |format|
   format.register(:first_name_formatter, FirstNameFormatter)
 end
 EOF
@@ -30,7 +29,7 @@ namespace :db2query do
     # Create initializer file
     initializer_path = "#{Rails.root}/config/initializers/db2query.rb"
     if File.exist?(initializer_path)
-      raise ArgumentError, "File exists."
+      raise Db2Query::Error, "Db2Query initializer file exists, please check first"
     else
       puts "  Creating initializer file ..."
       File.open(initializer_path, "w") do |file|

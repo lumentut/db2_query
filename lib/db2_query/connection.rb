@@ -1,148 +1,128 @@
-# frozen_String_literal: true
+# frozen_string_literal: true
 
-module DB2Query
-  class Connection
-    ADAPTER_NAME = "DB2Query"
+require_relative "error"
+require "connection_pool"
 
-    include DB2Query::DatabaseStatements
-    include ActiveSupport::Callbacks
+module Db2Query
+  class Bind < Struct.new(:name, :value, :index)
+  end
 
-    define_callbacks :checkout, :checkin
+  class Connection < ConnectionPool
+    attr_reader :config
 
-    attr_accessor :pool
-    attr_reader :owner, :connector, :lock
-    alias :in_use? :owner
+    include Logger
 
-    def initialize(type, config)
-      @connector = DB2Query::ODBCConnector.new(type, config)
-      @instrumenter  = ActiveSupport::Notifications.instrumenter
+    def initialize(config, &block)
       @config = config
-      @pool = ActiveRecord::ConnectionAdapters::NullPool.new
+      super(pool_config, &block)
+      @instrumenter = ActiveSupport::Notifications.instrumenter
       @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
-      connect
     end
 
-    def adapter_name
-      self.class::ADAPTER_NAME
+    alias pool with
+
+    def pool_config
+      { size: config[:pool], timeout: config[:timeout] }
     end
 
-    def requires_reloading?
-      false
+    def query(sql)
+      pool do |odbc_conn|
+        stmt = odbc_conn.run(sql)
+        stmt.to_a
+      ensure
+        stmt.drop unless stmt.nil?
+      end
     end
 
-    def close
-      pool.checkin self
-      pool.flush
+    def query_rows(sql)
+      query(sql)
     end
 
-    def connect
-      @connection = connector.connect
+    def query_value(sql)
+      single_value_from_rows(query(sql))
     end
 
-    def active?
-      @connection.connected?
+    def query_values(sql)
+      query(sql).map(&:first)
     end
 
-    def reconnect!
-      disconnect!
-      connect
-    end
-    alias reset! reconnect!
-
-    def disconnect!
-      @connection.disconnect
+    def execute(sql, args = [])
+      pool do |odbc_conn|
+        odbc_conn.do(sql, *args)
+      end
     end
 
-    def discard!
-      @connection = nil
+    def exec_query(formatters, sql, args = [])
+      binds, args = extract_binds_from_sql(sql, args)
+      sql = db2_spec_sql(sql)
+      log(sql, "SQL", binds, args) do
+        run_query(formatters, sql, args, binds)
+      end
     end
 
-    def lease
-      if in_use?
-        msg = +"Cannot lease connection, "
-        if @owner == Thread.current
-          msg << "it is already leased by the current thread."
+    def run_query(formatters, sql, args = [], binds)
+      pool do |odbc_conn|
+        begin
+          if args.empty?
+            stmt = odbc_conn.run(sql)
+          else
+            stmt = odbc_conn.run(sql, *args)
+          end
+          columns = stmt.columns.values.map { |col| col.name.downcase }
+          rows = stmt.to_a
+        ensure
+          stmt.drop unless stmt.nil?
+        end
+        Db2Query::Result.new(columns, rows, formatters)
+      end
+    end
+
+    private
+      def single_value_from_rows(rows)
+        row = rows.first
+        row && row.first
+      end
+
+      def iud_sql?(sql)
+        sql.match?(/insert into|update|delete/i)
+      end
+
+      def iud_ref_table(sql)
+        sql.match?(/delete/i) ? "OLD TABLE" : "NEW TABLE"
+      end
+
+      def db2_spec_sql(sql)
+        if iud_sql?(sql)
+          "SELECT * FROM #{iud_ref_table(sql)} (#{sql})"
         else
-          msg << "it is already in use by a different thread: #{@owner}. " \
-                  "Current thread: #{Thread.current}."
-        end
-        raise DB2Query::Error, msg
+          sql
+        end.tr("$", "")
       end
 
-      @owner = Thread.current
-    end
+      def extract_binds_from_sql(sql, args)
+        keys = sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=]/, "") }
+        sql = sql.tr("$", "")
+        args = args[0].is_a?(Hash) ? args[0] : args
+        given, expected = args.length, sql.scan(/\?/i).length
 
-    def verify!
-      reconnect! unless active?
-    end
-
-    def translate_exception_class(e, sql, binds)
-      message = "#{e.class.name}: #{e.message}"
-
-      exception = translate_exception(
-        e, message: message, sql: sql, binds: binds
-      )
-      exception.set_backtrace e.backtrace
-      exception
-    end
-
-    def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
-      @instrumenter.instrument(
-        "sql.active_record",
-        sql:               sql,
-        name:              name,
-        binds:             binds,
-        type_casted_binds: type_casted_binds,
-        statement_name:    statement_name,
-        connection_id:     object_id,
-        connection:        self) do
-        @lock.synchronize do
-          yield
-        end
-      rescue => e
-        raise translate_exception_class(e, sql, binds)
-      end
-    end
-
-    def translate_exception(exception, message:, sql:, binds:)
-      case exception
-      when RuntimeError
-        exception
-      else
-        DB2Query::StatementInvalid.new(message, sql: sql, binds: binds)
-      end
-    end
-
-    def expire
-      if in_use?
-        if @owner != Thread.current
-          raise DB2Query::Error, "Cannot expire connection, " \
-            "it is owned by a different thread: #{@owner}. " \
-            "Current thread: #{Thread.current}."
+        if given != expected
+          raise Db2Query::Error, "wrong number of arguments (given #{given}, expected #{expected})"
         end
 
-        @idle_since = Concurrent.monotonic_time
-        @owner = nil
-      else
-        raise DB2Query::Error, "Cannot expire connection, it is not currently leased."
-      end
-    end
-
-    def steal!
-      if in_use?
-        if @owner != Thread.current
-          pool.send :remove_connection_from_thread_cache, self, @owner
-
-          @owner = Thread.current
+        if args.is_a?(Hash)
+          binds = *args.map do |key, value|
+            if args[key.to_sym].nil?
+              raise Db2Query::Error, "Column name: `#{key}` not found inside sql statement."
+            end
+            Db2Query::Bind.new(key.to_s, value, nil)
+          end
+        else
+          binds = keys.map.with_index do |key, index|
+            Db2Query::Bind.new(key, args[index], nil)
+          end
         end
-      else
-        raise DB2Query::Error, "Cannot steal connection, it is not currently leased."
-      end
-    end
 
-    def seconds_idle
-      return 0 if in_use?
-      Concurrent.monotonic_time - @idle_since
-    end
+        [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value }]
+      end
   end
 end
