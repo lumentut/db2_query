@@ -55,7 +55,7 @@ Ensure that `unixodbc` have been installed and test your connection first by usi
 
 Example:
 
-Secondary database connection test
+ARUNIT DSN connection test
 ```bash
 $ isql -v ARUNIT
 +---------------------------------------+
@@ -82,7 +82,7 @@ The `query` method must have 2 inputs:
 1. Method name
 2. Body (can be an SQL statement or lamda).
 
-The lambda is used to facilitate us in using `built-in methods` as shown at two query methods below:
+The lambda is used to facilitate us in using `built-in methods` as shown at examples below:
 
 Example 1.
 ```ruby
@@ -121,6 +121,9 @@ class User < Db2query::Base
 end
 ```
 ```bash
+irb(main):002:0> User.insert_record [77777, "Ancient", "One", "ancientone@marvel.universe.com"]
+  SQL (3651.2ms)  SELECT * FROM NEW TABLE (INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?))  [["id,", 77777], ["first_name,", "Ancient"], ["last_name,", "One"], ["email)", "ancientone@marvel.universe.com"]]
+=> #<Db2Query::Result [#<Record id: 77777, first_name: "Ancient", last_name: "One", email: "ancientone@marvel.universe.com">]>
 ```
 
 ### 2. Plain/normal method
