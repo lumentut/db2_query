@@ -23,8 +23,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rubocop-rails"
   spec.add_development_dependency "faker"
   spec.add_development_dependency "byebug"
-  spec.add_development_dependency "rails", "~> 6.1.3", ">= 6.1.3.2"
+  spec.add_development_dependency "rails"
 
-  spec.add_dependency "connection_pool", "~> 2.2", ">= 2.2.5"
+  spec.add_dependency "connection_pool"
   spec.add_dependency "ruby-odbc"
 end

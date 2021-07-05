@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     db2_query (0.3.0)
-      connection_pool (~> 2.2, >= 2.2.5)
+      connection_pool
       ruby-odbc
 
 GEM
@@ -175,7 +175,7 @@ DEPENDENCIES
   byebug
   db2_query!
   faker
-  rails (~> 6.1.3, >= 6.1.3.2)
+  rails
   rubocop
   rubocop-performance
   rubocop-rails

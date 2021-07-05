@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "error"
-require "connection_pool"
-
 module Db2Query
   class Bind < Struct.new(:name, :value, :index)
   end

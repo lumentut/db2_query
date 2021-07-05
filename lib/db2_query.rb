@@ -15,8 +15,8 @@ module Db2Query
   autoload :Core
   autoload :Result
   autoload :Logger
-  autoload :Base
   autoload :Error
+  autoload :Base
 
   require "db2_query/railtie" if defined?(Rails)
 end
