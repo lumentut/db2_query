@@ -56,11 +56,11 @@ module Db2Query
       binds, args = extract_binds_from_sql(sql, args)
       sql = db2_spec_sql(sql)
       log(sql, "SQL", binds, args) do
-        run_query(formatters, sql, args, binds)
+        run_query(formatters, sql, binds, args)
       end
     end
 
-    def run_query(formatters, sql, args = [], binds)
+    def run_query(formatters, sql,  binds, args = [])
       pool do |odbc_conn|
         begin
           if args.empty?

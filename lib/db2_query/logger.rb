@@ -12,14 +12,14 @@ module Db2Query
       exception
     end
 
-    def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+    def log(sql, name = "SQL", binds = [], args = [], &block)
       @instrumenter.instrument(
         "sql.active_record",
         sql:               sql,
         name:              name,
         binds:             binds,
-        type_casted_binds: type_casted_binds,
-        statement_name:    statement_name,
+        type_casted_binds: args,
+        statement_name:    nil,
         connection_id:     object_id,
         connection:        self) do
         @lock.synchronize do
