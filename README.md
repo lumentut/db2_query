@@ -2,7 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/db2_query.svg)](https://badge.fury.io/rb/db2_query)
 
-A Rails 5 & Rails 6 plugin for handling Db2 SQL database `SIUD` statement (`SELECT`, `INPUT`, `UPDATE`, `DELETE`) by using ODBC connection.
+A Rails 5 & Rails 6 plugin for handling Db2 SQL database `SIUD` statement (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) by using ODBC connection.
 
 Note: Tested at Rails 5.2.6 and Rails 6.1.4
 
@@ -94,7 +94,7 @@ end
 ```bash
 irb(main):004:0> User.find_by 10000
   SQL (3.2ms)  SELECT * FROM LIBTEST.USERS WHERE id = ?  [["id", 10000]]
-=> #<Db2Query::Result [#<Record id: 10000, first_name: "Wilma", last_name: "Lindgren", email: "cleveland_kilback@breitenberg.com">]>
+=> #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
 Example 2.
 ```ruby
@@ -107,7 +107,7 @@ end
 ```bash
 irb(main):003:0> User.id_greater_than 10000
   SQL (3.2ms)  SELECT * FROM LIBTEST.USERS WHERE id > ?  [["id", 1000]]
-=> #<Db2Query::Result [#<Record id: 10000, first_name: "Wilma", last_name: "Lindgren", email: "cleveland_kilback@breitenberg.com">...">]>
+=> #<Db2Query::Result [#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">...">]>
 ```
 Example 3.
 ```ruby
@@ -134,7 +134,7 @@ end
 Then we can call it by using `find_by` class method.
 ```bash
 irb(main):001:0> User.find_by 10000
-SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [[nil, 10000]]
+SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE id = ? [["id", 10000]]
 => #<DB2Query::Result @records=[#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">]>
 ```
 Or with hash arguments input
@@ -154,11 +154,12 @@ SQL Load (3.28ms)  SELECT * FROM LIBTEST.USERS WHERE first_name = ? AND last_nam
 For a reusable sql, we can extend it by using a combination of `extention` and `sql_with_extention` methods,  with an `@extention` pointer at SQL statement.
 ```ruby
 class User < Db2Query::Base
-    # reusable SQL
-	_SQL = -> extention {
+  # reusable SQL
+  _SQL = -> extention {
     sql_with_extention("SELECT * FROM LIBTEST.USERS WHERE @extention", extention)
   }
-    # implementation
+  
+  # implementation
   query :by_email, _SQL.("$email = ?")
 end
 ```

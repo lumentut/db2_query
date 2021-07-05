@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors     = ["yohanes_l"]
   spec.email       = ["yohanes.lumentut@gmail.com"]
   spec.homepage    = "https://github.com/yohaneslumentut"
-  spec.summary     = "Db2 ODBC adapter"
-  spec.description = "A Rails Db2 ODBC adapter"
+  spec.summary     = "Db2 ODBC plugin"
+  spec.description = "A Rails 5 & Rails 6 plugin for handling Db2 SQL SIUD statement (SELECT, INSERT, UPDATE, DELETE) by using ODBC connection."
   spec.license     = "MIT"
 
   spec.metadata["homepage_uri"] = spec.homepage
