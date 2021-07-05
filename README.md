@@ -83,6 +83,7 @@ The `query` method must have 2 inputs:
 2. Body (can be an SQL statement or lamda).
 
 The lambda is used to facilitate us in using `built-in methods` as shown at two query methods below:
+
 Example 1.
 ```ruby
 class User < Db2Query::Base
