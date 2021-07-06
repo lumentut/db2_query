@@ -39,17 +39,22 @@ At version 0.3.0, `db2query.yml` only use DSN connection config:
 ```yml
   development:
      dsn: ARUNIT
+     idle: 5
      pool: 5
      timeout: 5
   test:
      dsn: ARUNIT
+     idle: 5
      pool: 5
      timeout: 5
   production:
      dsn: ARUNIT
+     idle: 5
      pool: 5
      timeout: 5
 ```
+
+Note: `idle` is a `db_client` idle maximum limit value (in minutes) to avoid the client disconnected by the host server. Setting this value to zero will lead to an "ODBC driver Communication Link Failure. Comm rc 10054 . [CWBCO](https://www.ibm.com/support/pages/cwbco1047-any-function-uses-database-host-server) 1047" error after a certain period of time.
 
 Ensure that `unixodbc` have been installed and test your connection first by using `isql` commands.
 

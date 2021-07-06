@@ -8,7 +8,7 @@ module Db2Query
 
     def initialize(config)
       @dsn = config[:dsn]
-      @idle_time_limit = config[:idle]
+      @idle_time_limit = config[:idle] || 5
       @client = new_db_client
       @last_active = Time.now
     end
