@@ -64,6 +64,8 @@ class Db2QueryTest < ActiveSupport::TestCase
     sleep 1
     client_3 = db_client.client
     assert_equal client_2.object_id, client_3.object_id
+    client_3.disconnect
+    assert_not_equal client_3.object_id, db_client.client
   end
 
   test "given args bigger than expected" do

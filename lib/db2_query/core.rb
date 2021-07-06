@@ -9,22 +9,37 @@ module Db2Query
     def initialize(config)
       @dsn = config[:dsn]
       @idle_time_limit = config[:idle]
-      @client = retrieve_db_client
+      @client = new_db_client
       @last_active = Time.now
     end
 
     def expire?
       Time.now - @last_active > 60 * @idle_time_limit
     end
+    
+    def active?
+      @client.connected?
+    end
 
-    def retrieve_db_client
+    def connected_and_persist?
+      active? && !expire?
+    end
+  
+    def disconnect!
+      @client.drop_all
+      @client.disconnect if active?
+      @client = nil
+    end
+
+    def new_db_client
       ODBC.connect(dsn)
     end
 
     def client
-      return @client unless expire?
+      return @client if connected_and_persist?
+      disconnect!
       @last_active = Time.now
-      @client = retrieve_db_client
+      @client = new_db_client
     end
   end
 
