@@ -16,7 +16,7 @@ module Db2Query
     def expire?
       Time.now - @last_active > 60 * @idle_time_limit
     end
-    
+
     def active?
       @client.connected?
     end
@@ -24,7 +24,7 @@ module Db2Query
     def connected_and_persist?
       active? && !expire?
     end
-  
+
     def disconnect!
       @client.drop_all
       @client.disconnect if active?
