@@ -7,16 +7,19 @@ DB2_QUERY_DATABASE_TEMPLATE ||= <<-EOF
 
 development:
   dsn: TODO
+  idle: 5
   pool: 5
   timeout: 5
 
 test:
   dsn: TODO
+  idle: 5
   pool: 5
   timeout: 5
 
 production:
   dsn: TODO
+  idle: 5
   pool: 5
   timeout: 5
 EOF

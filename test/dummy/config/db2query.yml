@@ -2,15 +2,18 @@
 
 development:
   dsn: ARUNIT
+  idle: 5
   pool: 5
   timeout: 5
 
 test:
   dsn: ARUNIT
+  idle: 5
   pool: 5
   timeout: 5
 
 production:
   dsn: ARUNIT
+  idle: 5
   pool: 5
   timeout: 5

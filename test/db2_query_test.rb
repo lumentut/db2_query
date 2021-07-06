@@ -18,8 +18,8 @@ class Db2QueryTest < ActiveSupport::TestCase
 
     config = Db2Query::Base.configurations
     assert_equal Hash, config.class
-    assert_equal 3, config.size
-    assert_equal [:dsn, :pool, :timeout], config.keys.sort
+    assert_equal 4, config.size
+    assert_equal [:dsn, :idle, :pool, :timeout], config.keys.sort
   end
 
   test "thread safe connection" do
@@ -50,6 +50,20 @@ class Db2QueryTest < ActiveSupport::TestCase
         assert_equal thread_conn, conn
       end
     }.join
+  end
+
+  test "db client expiration" do
+    config = { dsn: 'ARUNIT', idle: 0.04}
+    db_client = Db2Query::DbClient.new(config)
+    client_1 = db_client.client
+    object_id = client_1.object_id
+    assert_equal false, db_client.expire?
+    sleep 3
+    client_2 = db_client.client
+    assert_not_equal object_id, client_2.object_id
+    sleep 1
+    client_3 = db_client.client
+    assert_equal client_2.object_id, client_3.object_id
   end
 
   test "given args bigger than expected" do

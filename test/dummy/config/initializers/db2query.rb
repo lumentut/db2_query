@@ -7,12 +7,12 @@ Db2Query::Base.initiation do |base|
 end
 
 # Example
-class FirstNameFormatter < Db2Query::AbstractFormatter
-  def format(value)
-    "Dr." + value
-  end
-end
+#class FirstNameFormatter < Db2Query::AbstractFormatter
+#  def format(value)
+#    "Dr." + value
+#  end
+#end
 
-Db2Query::Formatter.registration do |format|
-  format.register(:first_name_formatter, FirstNameFormatter)
-end
+#Db2Query::Formatter.registration do |format|
+#  format.register(:first_name_formatter, FirstNameFormatter)
+#end

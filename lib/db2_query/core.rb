@@ -6,9 +6,15 @@ module Db2Query
 
     delegate :run, :do, to: :client
 
-    def initialize(dsn)
-      @dsn = dsn
+    def initialize(config)
+      @dsn = config[:dsn]
+      @idle_time_limit = config[:idle]
       @client = retrieve_db_client
+      @last_active = Time.now
+    end
+
+    def expire?
+      Time.now - @last_active > 60 * @idle_time_limit
     end
 
     def retrieve_db_client
@@ -16,10 +22,9 @@ module Db2Query
     end
 
     def client
-      unless @client.connected?
-        @client = retrieve_db_client
-      end
-      @client
+      return @client unless expire?
+      @last_active = Time.now
+      @client = retrieve_db_client
     end
   end
 
@@ -46,7 +51,7 @@ module Db2Query
       def create_connection
         @@mutex.synchronize do
           return @@connection if @@connection
-          @@connection = Connection.new(config) { DbClient.new(config[:dsn]) }
+          @@connection = Connection.new(config) { DbClient.new(config) }
         end
       end
 
