@@ -1,56 +1,12 @@
 # frozen_string_literal: true
 
 module Db2Query
-  class DbClient
-    attr_reader :dsn
-
-    delegate :run, :do, to: :client
-
-    def initialize(config)
-      @dsn = config[:dsn]
-      @idle_time_limit = config[:idle] || 5
-      @client = new_db_client
-      @last_active = Time.now
-    end
-
-    def expire?
-      Time.now - @last_active > 60 * @idle_time_limit
-    end
-
-    def active?
-      @client.connected?
-    end
-
-    def connected_and_persist?
-      active? && !expire?
-    end
-
-    def disconnect!
-      @client.drop_all
-      @client.disconnect if active?
-      @client = nil
-    end
-
-    def new_db_client
-      ODBC.connect(dsn)
-    end
-
-    def client
-      return @client if connected_and_persist?
-      disconnect!
-      @last_active = Time.now
-      @client = new_db_client
-    end
-  end
-
   module Core
-    extend ActiveSupport::Concern
-    included do
-      @@connection = nil
-      @@mutex = Mutex.new
+    def self.included(base)
+      base.send(:extend, ClassMethods)
     end
 
-    class_methods do
+    module ClassMethods
       def initiation
         yield(self) if block_given?
       end
@@ -59,29 +15,7 @@ module Db2Query
         formatters.store(attr_name, format)
       end
 
-      def connection
-        @@connection || create_connection
-      end
-
-      def create_connection
-        @@mutex.synchronize do
-          return @@connection if @@connection
-          @@connection = Connection.new(config) { DbClient.new(config) }
-        end
-      end
-
-      def establish_connection
-        load_database_configurations
-        create_connection
-      end
-
       def query(name, body)
-        if defined_method_name?(name)
-          raise Db2Query::Error, "You tried to define a scope named \"#{name}\" " \
-            "on the model \"#{self.name}\", but DB2Query already defined " \
-            "a class method with the same name."
-        end
-
         if body.respond_to?(:call)
           singleton_class.define_method(name) do |*args|
             body.call(*args)
@@ -131,9 +65,7 @@ module Db2Query
           if sql_methods.include?(sql_method)
             sql_statement = allocate.method(sql_method).call
 
-            unless sql_statement.is_a? String
-              raise Db2Query::Error, "Query methods must return a SQL statement string!"
-            end
+            validate_sql(sql_statement)
 
             query(method_name, sql_statement)
 

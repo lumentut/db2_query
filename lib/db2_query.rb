@@ -10,12 +10,15 @@ module Db2Query
   extend ActiveSupport::Autoload
 
   autoload :Version
-  autoload :Config
-  autoload :Connection
-  autoload :Core
-  autoload :Result
-  autoload :Logger
   autoload :Error
+  autoload :Config
+  autoload :Logger
+  autoload :DbClient
+  autoload :DbStatements
+  autoload :ConnectionHandler
+  autoload :Connection
+  autoload :Result
+  autoload :Core
   autoload :Base
 
   require "db2_query/railtie" if defined?(Rails)

@@ -31,6 +31,23 @@ class TestQuery < Db2Query::Base
     sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE @extention", extention)
   }
 
+  __SQL = -> extention {
+    sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE extention", extention)
+  }
+
+
+  query :wrong_list_pointer, -> names {
+    fetch_list(
+      _SQL.("first_name IN (list)"), names
+    )
+  }
+
+  query :wrong_extention_pointer, -> names {
+    fetch_list(
+      __SQL.("first_name IN (@list)"), names
+    )
+  }
+
   query :user_by_names, -> names {
     fetch_list(
       _SQL.("first_name IN (@list)"), names

@@ -38,5 +38,15 @@ module Db2Query
         StatementInvalid.new(message, sql: sql, binds: binds)
       end
     end
+
+    class StatementInvalid < ActiveRecord::ActiveRecordError
+      def initialize(message = nil, sql: nil, binds: nil)
+        super(message || $!.try(:message))
+        @sql = sql
+        @binds = binds
+      end
+
+      attr_reader :sql, :binds
+    end
   end
 end

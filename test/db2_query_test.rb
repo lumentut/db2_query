@@ -11,7 +11,16 @@ class Db2QueryTest < ActiveSupport::TestCase
     assert Db2Query::VERSION
   end
 
-  test "config file loaded" do
+  test "load database config exception" do
+    exception = assert_raise(Exception) { Db2Query::Base.load_database_configurations "fake" }
+    assert_equal("No such file or directory @ rb_sysopen - fake", exception.message)
+
+    assert_nothing_raised do
+      Db2Query::Base.load_database_configurations
+    end
+  end
+
+  test "load database configurations" do
     base_config_id = Db2Query::Base.configurations.object_id
     child_config_id = TestQuery.configurations.object_id
     assert_equal base_config_id, child_config_id
@@ -40,8 +49,8 @@ class Db2QueryTest < ActiveSupport::TestCase
     Thread.new {
       connection.pool do |conn|
         thread_conn = conn
-        assert_equal 5, connection.size
-        assert_equal 4, connection.available
+        expected_state = { size: 5, available: 4 }
+        assert_equal expected_state, connection.current_state
       end
     }.join
 
@@ -56,16 +65,29 @@ class Db2QueryTest < ActiveSupport::TestCase
     config = { dsn: "ARUNIT", idle: 0.04 }
     db_client = Db2Query::DbClient.new(config)
     client_1 = db_client.client
-    object_id = client_1.object_id
     assert_equal false, db_client.expire?
     sleep 3
+    assert_equal true, db_client.expire?
     client_2 = db_client.client
-    assert_not_equal object_id, client_2.object_id
+    assert_not_equal client_1.object_id, client_2.object_id
     sleep 1
+    assert_equal client_2, db_client.client
     client_3 = db_client.client
     assert_equal client_2.object_id, client_3.object_id
     client_3.disconnect
     assert_not_equal client_3.object_id, db_client.client
+  end
+
+  test "db client dsn exception" do
+    config = { dsn: "FAKE", idle: 0.04 }
+    exception = assert_raise(Exception) { Db2Query::DbClient.new(config) }
+    assert_includes exception.message, "Data source name not found"
+  end
+
+  test "connection reload" do
+    assert_nothing_raised do
+      Db2Query::Base.connection.reload
+    end
   end
 
   test "given args bigger than expected" do
@@ -116,7 +138,8 @@ class Db2QueryTest < ActiveSupport::TestCase
   end
 
   test "sql insert update delete" do
-    user_id = 11111
+    last_id_sql = "SELECT COALESCE(MAX (ID),0) FROM USERS"
+    user_id = Db2Query::Base.connection.query_value(last_id_sql) + 1
     first_name = "john"
     last_name = "doe"
     email = "john.doe@yahoo.com"
@@ -149,7 +172,7 @@ class Db2QueryTest < ActiveSupport::TestCase
 
   test "non string argument" do
     exception = assert_raise(Exception) { TestQuery.non_string }
-    assert_equal("Query methods must return a SQL statement string!", exception.message)
+    assert_equal("SQL have to be in string format", exception.message)
   end
 
   test "extention sql and list input" do
@@ -162,5 +185,12 @@ class Db2QueryTest < ActiveSupport::TestCase
     end
 
     assert_equal records.length, user_names.length
+  end
+
+  test "wrong extention sql and list input" do
+    exception_1 = assert_raise(Exception) { TestQuery.wrong_list_pointer ["john", "doe"] }
+    assert_equal "Missing @list pointer at SQL", exception_1.message
+    exception_2 = assert_raise(Exception) { TestQuery.wrong_extention_pointer ["john", "doe"] }
+    assert_equal "Missing @extention pointer at SQL", exception_2.message
   end
 end

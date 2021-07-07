@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require "db2_query"
-require "db2_query/formatter"
+# require "db2_query/formatter"
 
 Db2Query::Base.initiation do |base|
   base.establish_connection
