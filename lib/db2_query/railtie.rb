@@ -8,8 +8,12 @@ module Db2Query
     railtie_name :db2_query
 
     rake_tasks do
-      path = File.expand_path(__dir__)
-      Dir.glob("#{path}/tasks/*.rake").each { |f| load f }
+      db2_query_path = File.expand_path(__dir__)
+      Dir.glob("#{db2_query_path}/tasks/*.rake").each { |f| load f }
     end
+
+    config.app_generators do
+			require "#{File.expand_path('..', __dir__)}/rails/query_generator.rb"
+		end
   end
 end

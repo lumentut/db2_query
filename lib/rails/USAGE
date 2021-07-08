@@ -1,0 +1,18 @@
+Description:
+  Stubs out a new query. Pass the query name, either
+    CamelCased or under_scored, and an optional list of its methods as arguments.
+
+    To create a query within a module, just add --module NAME, or --module=NAME
+
+    This generates a query class in app/queries, or app/queries/module if module name is present.
+
+    To create query class methods, you can use 3 options:
+      1. Plain SQL methods --defines
+      2. Query Methods with SQL string, --queries
+      3. Query Methods with lambda, --lambdas
+
+Example:
+  `rails g query SalesQuery --module CustomerModule --queries by_customer --defines by_salesman --lambdas in_range`
+
+    This will create:
+        app/queries/customer_module/sales_query.rb

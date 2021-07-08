@@ -78,9 +78,16 @@ SQL>
 Note: Version 0.1.0 use `Db2Query` namespace. Version 0.2 use `DB2Query`. At version 0.3.0 we use `Db2Query`  , revert back to the previous namespace.
 
 ### Basic Usage
-Create query class that inherit from `DB2Query::Base` in `app/queries` folder. 
+Create query class by using `rails generate` commands.
 
-Note: `$`symbol is used as column name prefix.
+```bash
+rails g query SalesQuery --module CustomerModule --queries by_customer --defines by_salesman --lambdas in_range
+```
+This will create `app/queries/customer_module/sales_query.rb` file in `app/queries` directory.
+
+Please run `rails g query --help` to get more information on how to use file generator.
+
+Note that in the SQL statement, `$`symbol is used as column name prefix.
 
 ### 1. `query` method
 The `query` method must have 2 inputs:
