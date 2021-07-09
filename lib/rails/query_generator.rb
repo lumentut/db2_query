@@ -1,13 +1,13 @@
-require 'rails/generators'
 # frozen_string_literal: true
 
-require 'fileutils'
+require "rails/generators"
+require "fileutils"
 
 module Rails
   class QueryGenerator < Rails::Generators::NamedBase
     attr_reader :queries, :lambdas, :defines
 
-    source_root File.expand_path('../templates', __FILE__)
+    source_root File.expand_path("../templates", __FILE__)
 
     class_option :defines, type: :array, default: [], desc: "Plain query method options"
     class_option :queries, type: :array, default: [], desc: "Query method SQL options"
@@ -21,7 +21,7 @@ module Rails
       def assign_names!(name)
         super(name)
         @method_options = options.slice("defines", "queries", "lambdas")
-        @query_methods = @method_options.map {|key, val| val }.flatten
+        @query_methods = @method_options.map { |key, val| val }.flatten
       end
 
       def namespaced_query?
