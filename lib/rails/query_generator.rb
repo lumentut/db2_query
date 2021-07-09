@@ -9,36 +9,34 @@ module Rails
 
     source_root File.expand_path('../templates', __FILE__)
 
-    class_option :defines, type: :array, default: [], banner: "defs defs"
-    class_option :queries, type: :array, default: [], banner: "queries queries"
-    class_option :lambdas, type: :array, default: [], banner: "lambdas lambdas"
-    class_option :module, type: :string
+    class_option :defines, type: :array, default: [], desc: "Plain query method options"
+    class_option :queries, type: :array, default: [], desc: "Query method SQL options"
+    class_option :lambdas, type: :array, default: [], desc: "Query method with callable args"
 
     def create_query_file
-      @method_options = options.slice("defines", "queries", "lambdas")
-      @query_methods = @method_options.map {|key, val| val }.flatten
-      @module_name = options[:module]
-      dir_path = module? ? queries_module_dir_path : queries_dir_path
-      generator_path = dir_path.join "#{file_name}.rb"
-      FileUtils.mkdir_p(dir_path)
-      template "query.erb", generator_path
+      template "query.rb", File.join("app/queries", class_path, "#{file_name}.rb")
     end
 
     private
-      def queries_dir_path
-        Rails.root.join 'app', 'queries'
+      def assign_names!(name)
+        super(name)
+        @method_options = options.slice("defines", "queries", "lambdas")
+        @query_methods = @method_options.map {|key, val| val }.flatten
       end
 
-      def queries_module_dir_path
-        queries_dir_path.join @module_name.underscore
+      def namespaced_query?
+        !class_path.empty?
       end
 
-      def module?
-        @module_name.present?
-      end
-      
-      def methods?
-        methods.any?
+      def module_namespacing(&block)
+        content = capture(&block)
+        if namespaced_query?
+          namespaced_names = class_path
+          namespaced_names.reverse_each do |namespace_name|
+            content = "module #{namespace_name.camelize}\n#{indent(content)}\nend"
+          end
+        end
+        concat(content)
       end
   end
 end

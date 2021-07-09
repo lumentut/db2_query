@@ -21,5 +21,9 @@ module Db2Query
   autoload :Core
   autoload :Base
 
+  def self.root
+    __dir__
+  end
+
   require "db2_query/railtie" if defined?(Rails)
 end

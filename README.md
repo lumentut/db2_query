@@ -77,18 +77,40 @@ SQL>
 ## Usage
 Note: Version 0.1.0 use `Db2Query` namespace. Version 0.2 use `DB2Query`. At version 0.3.0 we use `Db2Query`  , revert back to the previous namespace.
 
-### Basic Usage
-Create query class by using `rails generate` commands. For example:
+### Generator
+Create query class by using `rails g query NAME` commands. For example:
 
 ```bash
-rails g query SalesQuery --module CustomerModule --queries by_customer --defines by_salesman --lambdas in_range
+rails g query NameSpace::Name --queries query_1 --defines query_2 --lambdas query_3
 ```
-This will create `app/queries/customer_module/sales_query.rb` file in `app/queries` directory.
+This will create `app/queries/name_space/name_query.rb` file in `app/queries` directory.
+
+```ruby
+module NameSpace
+  class Name < Db2Query
+    query :query_1, <<-SQL
+
+    SQL
+
+    def query_2_sql
+
+    end
+
+    query :query_3, -> {
+      
+    }
+  end
+end
+```
+
 Please run `rails g query --help` to get more information on how to use file generator.
 
-
-Note that in the SQL statement, `$`symbol is used as column name prefix.
-
+### Query
+Note that in the SQL statement of a query, `$`symbol is used as column name prefix.
+To run a query we can use two options:
+1. `query` method
+2. `plain` method
+   
 ### 1. `query` method
 The `query` method must have 2 inputs:
 1. Method name
@@ -96,7 +118,8 @@ The `query` method must have 2 inputs:
 
 The lambda is used to facilitate us in using `built-in methods` as shown at examples below:
 
-Example 1.
+#### Query with SQL string
+Example 1
 ```ruby
 class User < Db2Query::Base
   query :find_by, <<-SQL
@@ -122,7 +145,8 @@ irb(main):003:0> User.id_greater_than 10000
   SQL (3.2ms)  SELECT * FROM LIBTEST.USERS WHERE id > ?  [["id", 1000]]
 => #<Db2Query::Result [#<Record id: 10000, first_name: "Strange", last_name: "Stephen", email: "strange@marvel.universe.com">...">]>
 ```
-Example 3.
+#### Query with lambda
+Example
 ```ruby
 class User < Db2query::Base
   query :insert_record, -> args {
@@ -134,7 +158,7 @@ end
 ```
 ```bash
 irb(main):002:0> User.insert_record [77777, "Ancient", "One", "ancientone@marvel.universe.com"]
-  SQL (3651.2ms)  SELECT * FROM NEW TABLE (INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?))  [["id,", 77777], ["first_name,", "Ancient"], ["last_name,", "One"], ["email)", "ancientone@marvel.universe.com"]]
+  SQL (3.2ms) INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)  [["id,", 77777], ["first_name,", "Ancient"], ["last_name,", "One"], ["email)", "ancientone@marvel.universe.com"]]
 => #<Db2Query::Result [#<Record id: 77777, first_name: "Ancient", last_name: "One", email: "ancientone@marvel.universe.com">]>
 ```
 

@@ -70,7 +70,7 @@ module Db2Query
             query(method_name, sql_statement)
 
             if args[0].is_a?(Hash)
-              keys = sql_statement.scan(/\$\S+/).map { |key| key.gsub!(/[$=]/, "") }
+              keys = sql_statement.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
               rearrange_args = {}
               keys.each { |key| rearrange_args[key.to_sym] = args[0][key.to_sym] }
               args[0] = rearrange_args
