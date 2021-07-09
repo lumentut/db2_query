@@ -12,7 +12,7 @@ module Db2Query
     end
 
     config.app_generators do
-      require "#{Db2Query.root}/rails/query_generator.rb"
+      require "#{Db2Query.root}/rails/generators/query/query_generator.rb"
     end
   end
 end

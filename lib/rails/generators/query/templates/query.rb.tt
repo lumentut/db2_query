@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 <% module_namespacing do -%>
-class <%= file_name.camelize %> < <%= "Db2Query::Base" -%>
+class <%= query_class_name %> < <%= "Db2Query::Base" -%>
 <% if @query_methods.empty? %>
 <%= indent("query :to_do, <<-SQL\n") %>
 <%= indent("SQL\n") %>
 <%= indent("def to_do_sql\n") %>
-<%= indent("end") -%>
+<%= indent("end") %>
 <% end -%>
 <% @method_options.each do |key, val| -%>
 <% val.each_with_index do |option, index| -%>
