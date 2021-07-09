@@ -81,7 +81,9 @@ Note: Version 0.1.0 use `Db2Query` namespace. Version 0.2 use `DB2Query`. At ver
 Create query class by using `rails g query NAME` commands. For example:
 
 ```bash
-rails g query NameSpace::Name --queries query_1 --defines query_2 --lambdas query_3
+$ rails g query NameSpace::Name --queries query_1 --defines query_2 --lambdas query_3
+    create app/queries/name_space/name_query.rb
+    create test/queries/name_space/name_query_test.rb
 ```
 This will create `app/queries/name_space/name_query.rb` file in `app/queries` directory.
 

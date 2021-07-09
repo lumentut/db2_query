@@ -11,5 +11,5 @@ Description:
 
 Example:
   $ rails g query NameSpace::Name --queries query_1 --defines query_2 --lambdas query_3
-      create app/queries/name_space/name_query.rb`
-      create test/queries/name_space/name_query_test.rb`
+      create app/queries/name_space/name_query.rb
+      create test/queries/name_space/name_query_test.rb
