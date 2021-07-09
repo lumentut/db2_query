@@ -5,8 +5,6 @@ require "fileutils"
 
 module Rails
   class QueryGenerator < Rails::Generators::NamedBase
-    attr_reader :queries, :lambdas, :defines
-
     source_root File.expand_path("../templates", __FILE__)
 
     class_option :defines, type: :array, default: [], desc: "Plain query method options"
