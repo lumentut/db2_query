@@ -64,24 +64,19 @@ module Db2Query
 
           if sql_methods.include?(sql_method)
             sql_statement = allocate.method(sql_method).call
-
-            validate_sql(sql_statement)
-
-            query(method_name, sql_statement)
-
-            if args[0].is_a?(Hash)
-              keys = sql_statement.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
-              rearrange_args = {}
-              keys.each { |key| rearrange_args[key.to_sym] = args[0][key.to_sym] }
-              args[0] = rearrange_args
-            end
-
+            define(method_name, sql_statement)
+            args[0] = sort_args(sql_statement, args) if args[0].is_a?(Hash) 
             method(method_name).call(*args)
           elsif connection.respond_to?(method_name)
             connection.send(method_name, *args)
           else
             super
           end
+        end
+
+        def sort_args(sql, args)
+          keys = sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
+          keys.each_with_object({}) { |key, obj| obj[key.to_sym] = args[0][key.to_sym] }
         end
 
         def validate_sql(sql)
