@@ -24,7 +24,7 @@ module Db2Query
   end
 
   autoload :Definitions, "db2_query/definitions"
-  autoload :ColumnDefinitions, "db2_query/column_definitions"
+  autoload :QueryDefinitions, "db2_query/query_definitions"
   autoload :ConnectionHandler, "db2_query/connection_handler"
   autoload :Connection, "db2_query/connection"
   autoload :Result, "db2_query/result"

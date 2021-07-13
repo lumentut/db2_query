@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Db2Query
-  module ColumnDefinitions
+  module QueryDefinitions
     def self.included(base)
       base.send(:extend, ClassMethods)
     end

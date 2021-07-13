@@ -17,6 +17,10 @@ module Rails
         template "query.rb", File.join("app/queries", class_path, "#{file_name}_query.rb")
       end
 
+      def create_query_definitions_file
+        template "query_definitions.rb", File.join("app/queries/definitions", class_path, "#{file_name}_query_definitions.rb")
+      end
+
       def create_query_test_file
         unless options[:skip_unit_test]
           template "unit_test.rb", File.join("test/queries", class_path, "#{file_name}_query_test.rb")
@@ -38,15 +42,29 @@ module Rails
           !class_path.empty?
         end
 
+        def namespaced_names
+          class_path
+        end
+
         def module_namespacing(&block)
           content = capture(&block)
           if namespaced_query?
-            namespaced_names = class_path
             namespaced_names.reverse_each do |namespace_name|
               content = "module #{namespace_name.camelize}\n#{indent(content)}\nend"
             end
           end
           concat(content)
+        end
+
+        def module_definitions_namespacing(&block)
+          content = capture(&block)
+          if namespaced_query?
+            namespaced_names.reverse_each do |namespace_name|
+              content = "module #{namespace_name.camelize}\n#{indent(content)}\nend"
+            end
+          end
+          definitions_namespace_content = "module Definitions\n#{indent(content)}\nend"
+          concat(definitions_namespace_content)
         end
     end
   end

@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 module Db2Query
@@ -51,7 +50,7 @@ module Db2Query
       @queries ||= {}
     end
 
-    def column_types(query_name, &block)
+    def query_definition(query_name, &block)
       data_types = DataTypes.new
       yield data_types
       queries[query_name] = data_types.columns

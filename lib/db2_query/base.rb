@@ -4,7 +4,7 @@ module Db2Query
   class Base
     include Config
     include ConnectionHandler
-    include ColumnDefinitions
+    include QueryDefinitions
     include Core
 
     def self.inherited(subclass)

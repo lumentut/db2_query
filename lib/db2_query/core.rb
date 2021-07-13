@@ -18,7 +18,7 @@ module Db2Query
           singleton_class.define_method(name) do |*args|
             body.call(args << { query_name: name })
           end
-        elsif body.is_a?(String)
+        elsif body.is_a?(String) && body.strip.length > 0
           sql = body.strip
           singleton_class.define_method(name) do |*args|
             binds, args = query_binds(name, sql, args)
