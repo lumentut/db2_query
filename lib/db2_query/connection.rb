@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 module Db2Query
-  class Bind < Struct.new(:name, :value, :index)
-  end
-
   class Connection < ConnectionPool
     attr_reader :config
 

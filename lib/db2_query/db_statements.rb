@@ -31,14 +31,21 @@ module Db2Query
       end
     end
 
-    def exec_query(formatters, sql, args = [])
-      binds, args = extract_binds_from_sql(sql, args)
+    def exec_select_query(sql, binds = [], args = [])
+      raise_fetch_error if iud_sql?(sql)
       log(sql, "SQL", binds, args) do
-        run_query(formatters, db2_spec_sql(sql), binds, args)
+        run_query(sql, args)
       end
     end
 
-    def run_query(formatters, sql,  binds, args = [])
+    def exec_query(sql, binds = [], args = [])
+      log(sql, "SQL", binds, args) do
+        run_query(sql, args)
+      end
+    end
+
+    def run_query(sql, args = [])
+      sql = db2_spec_sql(sql)
       pool do |odbc_conn|
         begin
           if args.empty?
@@ -51,7 +58,7 @@ module Db2Query
         ensure
           stmt.drop unless stmt.nil?
         end
-        Db2Query::Result.new(columns, rows, formatters)
+        [columns, rows]
       end
     end
 
@@ -72,27 +79,8 @@ module Db2Query
         end.tr("$", "")
       end
 
-      def extract_binds_from_sql(sql, args)
-        keys = sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
-        sql = sql.tr("$", "")
-        args = args[0].is_a?(Hash) ? args[0] : args
-        given, expected = args.length, sql.scan(/\?/i).length
-
-        if given != expected
-          raise Db2Query::Error, "wrong number of arguments (given #{given}, expected #{expected})"
-        end
-
-        if args.is_a?(Hash)
-          binds = *args.map do |key, value|
-            Db2Query::Bind.new(key.to_s, value, nil)
-          end
-        else
-          binds = keys.map.with_index do |key, index|
-            Db2Query::Bind.new(key, args[index], nil)
-          end
-        end
-
-        [binds.map { |bind| [bind, bind.value] }, binds.map { |bind| bind.value }]
+      def raise_fetch_error
+        raise Db2Query::Error, "`fetch` and `fetch_list` method only for SQL `select` statement."
       end
   end
 end

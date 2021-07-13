@@ -4,6 +4,11 @@ module Db2Query
   class Base
     include Config
     include ConnectionHandler
+    include ColumnDefinitions
     include Core
+
+    def self.inherited(subclass)
+      subclass.set_definitions
+    end
   end
 end
