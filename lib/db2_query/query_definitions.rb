@@ -12,6 +12,7 @@ module Db2Query
         varbinary: Db2Query::Type::Binary,
         binary: Db2Query::Type::String,
         string: Db2Query::Type::String,
+        varchar: Db2Query::Type::Text,
         text: Db2Query::Type::Text,
         decimal: Db2Query::Type::Decimal,
         integer: ActiveRecord::Type::Integer,

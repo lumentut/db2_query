@@ -11,6 +11,10 @@ class TestQuery < Db2Query::Base
     "SELECT * FROM DB2INST1.USERS WHERE $first_name = ? AND $email = ?"
   end
 
+  query :by_name_and_email, -> args {
+    fetch("SELECT * FROM DB2INST1.USERS WHERE $first_name = ? AND $email = ?", args)
+  }
+
   query :find_by, <<-SQL
     SELECT * FROM DB2INST1.USERS WHERE $id = ?
   SQL
@@ -19,12 +23,12 @@ class TestQuery < Db2Query::Base
     SELECT * FROM DB2INST1.USERS WHERE $id > ?
   SQL
 
-  query :id_greater_than, -> id {
-    exec_query({}, "SELECT * FROM DB2INST1.USERS WHERE $id > ?", [id])
+  query :id_greater_than, -> args {
+    fetch("SELECT * FROM DB2INST1.USERS WHERE $id > ?", args)
   }
 
-  query :user_by_ids, -> ids {
-    fetch_list("SELECT * FROM DB2INST1.USERS WHERE ID IN (@list)", ids)
+  query :user_by_ids, -> args {
+    fetch_list("SELECT * FROM DB2INST1.USERS WHERE ID IN (@list)", args)
   }
 
   _SQL = -> extention {
@@ -35,27 +39,26 @@ class TestQuery < Db2Query::Base
     sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE extention", extention)
   }
 
-
-  query :wrong_list_pointer, -> names {
+  query :wrong_list_pointer, -> args {
     fetch_list(
-      _SQL.("first_name IN (list)"), names
+      _SQL.("first_name IN (list)"), args
     )
   }
 
-  query :wrong_extention_pointer, -> names {
+  query :wrong_extention_pointer, -> args {
     fetch_list(
-      __SQL.("first_name IN (@list)"), names
+      __SQL.("first_name IN (@list)"), args
     )
   }
 
-  query :user_by_names, -> names {
+  query :user_by_names, -> args {
     fetch_list(
-      _SQL.("first_name IN (@list)"), names
+      _SQL.("first_name IN (@list)"), args
     )
   }
 
-  query :user_by_details, -> name, email {
-    fetch(_SQL.("$first_name = ? AND $email = ?"), [name, email])
+  query :user_by_details, -> args {
+    fetch(_SQL.("$first_name = ? AND $email = ?"), args)
   }
 
   query :user_by_email, _SQL.("$email = ?")

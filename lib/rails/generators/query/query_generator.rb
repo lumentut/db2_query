@@ -46,23 +46,22 @@ module Rails
           class_path
         end
 
+        def namespaced_content(content)
+          namespaced_names.reverse_each do |namespace_name|
+            content = "module #{namespace_name.camelize}\n#{indent(content)}\nend"
+          end
+          content
+        end
+
         def module_namespacing(&block)
           content = capture(&block)
-          if namespaced_query?
-            namespaced_names.reverse_each do |namespace_name|
-              content = "module #{namespace_name.camelize}\n#{indent(content)}\nend"
-            end
-          end
+          content = namespaced_content(content) if namespaced_query?
           concat(content)
         end
 
         def module_definitions_namespacing(&block)
           content = capture(&block)
-          if namespaced_query?
-            namespaced_names.reverse_each do |namespace_name|
-              content = "module #{namespace_name.camelize}\n#{indent(content)}\nend"
-            end
-          end
+          content = namespaced_content(content) if namespaced_query?
           definitions_namespace_content = "module Definitions\n#{indent(content)}\nend"
           concat(definitions_namespace_content)
         end

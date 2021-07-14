@@ -31,7 +31,7 @@ module Db2Query
       end
       alias define query
 
-      def fetch(sql, args)
+      def fetch(sql, args = [])
         name = args.pop()[:query_name]
         binds, args = query_binds(name, sql, args)
         columns, rows = connection.exec_select_query(sql, binds, args)
@@ -39,18 +39,15 @@ module Db2Query
       end
 
       def fetch_list(sql, args)
-        fetch(sql_with_list(sql, args))
-      end
-
-      def fetch_extention(sql, extention, args)
-        fetch(sql_with_extention(sql, args))
+        list = args.shift
+        fetch(sql_with_list(sql, list), args)
       end
 
       def sql_with_list(sql, list)
         validate_sql(sql)
         raise Db2Query::Error, "Missing @list pointer at SQL" if sql.scan(/\@list+/).length == 0
-        raise Db2Query::Error, "The arguments should be an array of list" unless args.is_a?(Array)
-        sql.gsub("@list", "'#{args.join("', '")}'")
+        raise Db2Query::Error, "The arguments should be an array of list" unless list.is_a?(Array)
+        sql.gsub("@list", "'#{list.join("', '")}'")
       end
 
       def sql_with_extention(sql, extention)
@@ -100,6 +97,31 @@ module Db2Query
         class Bind < Struct.new(:name, :value, :index)
         end
 
+        def insert_sql?(sql)
+          sql.match?(/insert/i)
+        end
+  
+        def table_name_from_insert_sql(sql)
+          sql.split("INTO ").last.split(" ").first
+        end
+
+        def max_id(table_name)
+          query_value("SELECT COALESCE(MAX (ID),0) FROM #{table_name}")
+        end
+
+        def reset_id_sequence(table_name)
+          next_val = max_id(table_name) + 1
+          connection.execute <<-SQL
+            ALTER TABLE #{table_name}
+            ALTER COLUMN ID
+            RESTART WITH #{next_val}
+            SET INCREMENT BY 1
+            SET NO CYCLE
+            SET CACHE 500
+            SET NO ORDER;
+          SQL
+        end
+
         def new_bind(name, key, value)
           Bind.new(key, value, nil)
         end
@@ -108,19 +130,28 @@ module Db2Query
           keys = sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
           sql = sql.tr("$", "")
           args = args[0].is_a?(Hash) ? args[0] : args
-          given, expected = args.length, sql.scan(/\?/i).length
+          given, expected = [args.length, sql.scan(/\?/i).length]
 
           if given != expected
-            raise Db2Query::Error, "wrong number of arguments (given #{given}, expected #{expected})"
+            raise Db2Query::Error, "Wrong number of arguments (given #{given}, expected #{expected})"
           end
 
           if args.is_a?(Hash)
-            binds = *args.map { |key, value| new_bind(query_name, key.to_s, value) }
+            binds = keys.map { |key| new_bind(query_name, key, args[key.to_sym]) }
           else
             binds = keys.map.with_index { |key, index| new_bind(query_name, key, args[index]) }
           end
 
           definition = definitions[query_name]
+
+          if definition.nil?
+            raise Db2Query::Error, "No query definition found for #{name}:#{query_name}"
+          end
+
+          if insert_sql?(sql) && !definition[:id].nil?
+            table_name = table_name_from_insert_sql(sql)
+            reset_id_sequence(table_name)
+          end
 
           args = binds.map do |bind|
             column = bind.name.to_sym
@@ -134,11 +165,18 @@ module Db2Query
           [binds.map { |bind| [bind, bind.value] }, args]
         end
 
-        def query_result(name, columns, rows)
-          definition = definitions[name]
+        def query_result(query_name, columns, rows)
+          definition = definitions[query_name]
+          res_cols, def_cols = [columns.length, definition.length]
+  
+          if res_cols != def_cols
+            raise Db2Query::Error, "Wrong number of columns (query definitions #{def_cols}, query result #{res_cols})"
+          end
+
           rows = rows.each do |row|
             columns.zip(row) do |col, val|
               data_type = definition[col.to_sym]
+              raise Db2Query::Error, "No column `#{col}` found in #{name}Definitions" if data_type.nil?
               data_type.deserialize(val)
             end
           end

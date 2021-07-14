@@ -1,2 +1,2 @@
-INSERT INTO users ($id, $first_name, $last_name, $email)
-VALUES (?, ?, ?, ?)
+INSERT INTO users ($first_name, $last_name, $email)
+VALUES (?, ?, ?)

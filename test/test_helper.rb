@@ -42,6 +42,6 @@ CREATE_USER_SQL = File.read(CREATE_USERS_SQL_FILE)
 @connection.execute(CREATE_USER_SQL)
 
 INSERT_USER_SQL = File.read(INSERT_USERS_SQL_FILE)
-(10000...10010).each do |i|
-  @connection.exec_query({}, INSERT_USER_SQL, [i, Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email])
+(10000...10010).each do
+  @connection.exec_query(INSERT_USER_SQL, [], [Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email])
 end
