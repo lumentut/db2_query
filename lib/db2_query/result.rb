@@ -11,6 +11,7 @@ module Db2Query
     end
 
     def record
+      return nil if rows.empty?
       @record ||= Record.new(rows[0], columns)
     end
 
@@ -23,6 +24,14 @@ module Db2Query
     def to_h
       rows.map do |row|
         columns.zip(row).each_with_object({}) { |cr, h| h[cr[0].to_sym] = cr[1] }
+      end
+    end
+
+    def method_missing(method_name, *args, &block)
+      if record.respond_to?(method_name)
+        record.send(method_name)
+      else
+        super
       end
     end
 
