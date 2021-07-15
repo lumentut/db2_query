@@ -36,10 +36,10 @@ module Db2Query
       alias define query
 
       def fetch(sql, args = [])
-        name = args.pop()[:query_name]
-        binds, args = query_binds(name, sql, args)
+        query_name = args.pop[:query_name]
+        binds, args = query_binds(query_name, sql, args)
         columns, rows = connection.exec_select_query(sql, binds, args)
-        query_result(name, columns, rows)
+        query_result(query_name, columns, rows)
       end
 
       def fetch_list(sql, args)
@@ -77,7 +77,7 @@ module Db2Query
         end
 
         def query_name_from_lambda_args(args)
-          query_name = args.pop()[:query_name]
+          query_name = args.pop[:query_name]
           if query_name.nil?
             raise Db2Query::Error, "Method `exec_query` can only be used inside a lambda query"
           end
@@ -95,9 +95,9 @@ module Db2Query
             sql_statement, args = sql_statement_from_query(method_name, args)
             define(method_name, sql_statement)
             method(method_name).call(*args)
-          elsif method_name === "exec_query"
+          elsif method_name == :exec_query
+            sql, args = [args.shift, args.first]
             query_name = query_name_from_lambda_args(args)
-            sql = args.shift
             exec_query_result(query_name, sql, args)
           else
             super
