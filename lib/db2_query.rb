@@ -14,6 +14,8 @@ module Db2Query
   autoload :Logger, "db2_query/logger"
   autoload :DbClient, "db2_query/db_client"
   autoload :DbStatements, "db2_query/db_statements"
+  autoload :Validations, "db2_query/validations"
+  autoload :SqlMethods, "db2_query/sql_methods"
 
   module Type
     autoload :Binary, "db2_query/type/binary"

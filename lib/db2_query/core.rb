@@ -13,17 +13,21 @@ module Db2Query
         yield(self) if block_given?
       end
 
-      def query(name, body)
+      def exec_query_result(query_name, sql, args)
+        binds, args = query_binds(query_name, sql, args)
+        columns, rows = connection.exec_query(sql, binds, args)
+        query_result(query_name, columns, rows)
+      end
+
+      def query(query_name, body)
         if body.respond_to?(:call)
-          singleton_class.define_method(name) do |*args|
-            body.call(args << { query_name: name })
+          singleton_class.define_method(query_name) do |*args|
+            body.call(args << { query_name: query_name })
           end
         elsif body.is_a?(String) && body.strip.length > 0
           sql = body.strip
-          singleton_class.define_method(name) do |*args|
-            binds, args = query_binds(name, sql, args)
-            columns, rows = connection.exec_query(sql, binds, args)
-            query_result(name, columns, rows)
+          singleton_class.define_method(query_name) do |*args|
+            exec_query_result(query_name, sql, args)
           end
         else
           raise Db2Query::Error, "The query body needs to be callable or is a sql string"
@@ -61,106 +65,97 @@ module Db2Query
           @formatters ||= Hash.new
         end
 
-        def defined_method_name?(name)
-          self.class.method_defined?(name) || self.class.private_method_defined?(name)
+        def validate_sql(sql)
+          raise Db2Query::Error, "SQL have to be in string format" unless sql.is_a?(String)
+        end
+
+        def sql_statement_from_query(method_name, args)
+          sql_query_name = sql_query_symbol(method_name)
+          sql_statement = allocate.method(sql_query_name).call
+          args = sorted_args(sql_statement, args)
+          [sql_statement, args]
+        end
+
+        def query_name_from_lambda_args(args)
+          query_name = args.pop()[:query_name]
+          if query_name.nil?
+            raise Db2Query::Error, "Method `exec_query` can only be used inside a lambda query"
+          end
+          query_name
+        end
+
+        def exec_query_result(query_name, sql, args)
+          binds, args = query_binds(query_name, sql, args)
+          columns, rows = connection.exec_query(sql, binds, args)
+          query_result(query_name, columns, rows)
         end
 
         def method_missing(method_name, *args, &block)
-          sql_methods = self.instance_methods.grep(/_sql/)
-          sql_method = "#{method_name}_sql".to_sym
-
-          if sql_methods.include?(sql_method)
-            sql_statement = allocate.method(sql_method).call
+          if sql_method?(method_name)
+            sql_statement, args = sql_statement_from_query(method_name, args)
             define(method_name, sql_statement)
-            args[0] = sort_args(sql_statement, args) if args[0].is_a?(Hash)
             method(method_name).call(*args)
           elsif method_name === "exec_query"
-            name = args.pop()[:query_name]
-            raise Db2Query::Error, "Method `exec_query` can only be used inside a lambda query" if name.nil?
-            binds, args = query_binds(name, sql, args)
-            columns, rows = connection.exec_query(sql, binds, args)
-            query_result(name, columns, rows)
+            query_name = query_name_from_lambda_args(args)
+            sql = args.shift
+            exec_query_result(query_name, sql, args)
           else
             super
           end
         end
 
-        def sort_args(sql, args)
-          keys = sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
-          keys.each_with_object({}) { |key, obj| obj[key.to_sym] = args[0][key.to_sym] }
-        end
-
-        def validate_sql(sql)
-          raise Db2Query::Error, "SQL have to be in string format" unless sql.is_a?(String)
+        def sorted_args(sql, args)
+          if args.first.is_a?(Hash)
+            args[0] = parameters(sql).each_with_object({}) do |key, obj|
+              obj[key.to_sym] = args.first[key.to_sym]
+            end
+          end
+          args
         end
 
         class Bind < Struct.new(:name, :value, :index)
-        end
-
-        def insert_sql?(sql)
-          sql.match?(/insert/i)
-        end
-  
-        def table_name_from_insert_sql(sql)
-          sql.split("INTO ").last.split(" ").first
-        end
-
-        def max_id(table_name)
-          query_value("SELECT COALESCE(MAX (ID),0) FROM #{table_name}")
-        end
-
-        def reset_id_sequence(table_name)
-          next_val = max_id(table_name) + 1
-          connection.execute <<-SQL
-            ALTER TABLE #{table_name}
-            ALTER COLUMN ID
-            RESTART WITH #{next_val}
-            SET INCREMENT BY 1
-            SET NO CYCLE
-            SET CACHE 500
-            SET NO ORDER;
-          SQL
         end
 
         def new_bind(name, key, value)
           Bind.new(key, value, nil)
         end
 
+        def query_definition(query_name)
+          definition = definitions[query_name]
+          if definition.nil?
+            raise Db2Query::Error, "No query definition found for #{name}:#{query_name}"
+          end
+          definition
+        end
+
+        def data_type(query_name, column)
+          data_type = query_definition(query_name)[column]
+          if data_type.nil?
+            raise Db2Query::Error, "Column `#{column}` not found at `#{name} query:#{query_name}` Query Definitions."
+          end
+          data_type
+        end
+
         def query_binds(query_name, sql, args)
-          keys = sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
-          sql = sql.tr("$", "")
-          args = args[0].is_a?(Hash) ? args[0] : args
-          given, expected = [args.length, sql.scan(/\?/i).length]
+          sql, keys, length = bind_variables(sql)
+          args = args.first.is_a?(Hash) ? args.first : args
+          given, expected = [args.length, length]
 
           if given != expected
             raise Db2Query::Error, "Wrong number of arguments (given #{given}, expected #{expected})"
           end
 
-          if args.is_a?(Hash)
-            binds = keys.map { |key| new_bind(query_name, key, args[key.to_sym]) }
-          else
-            binds = keys.map.with_index { |key, index| new_bind(query_name, key, args[index]) }
-          end
-
-          definition = definitions[query_name]
-
-          if definition.nil?
-            raise Db2Query::Error, "No query definition found for #{name}:#{query_name}"
-          end
-
-          if insert_sql?(sql) && !definition[:id].nil?
-            table_name = table_name_from_insert_sql(sql)
-            reset_id_sequence(table_name)
+          binds = keys.map.with_index do |key, index|
+            arg = args.is_a?(Hash) ? args[key.to_sym] : args[index]
+            new_bind(query_name, key, arg)
           end
 
           args = binds.map do |bind|
             column = bind.name.to_sym
-            data_type = definition[column]
-            if data_type.nil?
-              raise Db2Query::Error, "Column `#{column}` not found at `#{name} query:#{query_name}` Query Definitions."
-            end
-            data_type.serialize(bind.value)
+            data_type(query_name, column).serialize(bind.value)
           end
+
+          reset_id_when_required(query_name, sql)
 
           [binds.map { |bind| [bind, bind.value] }, args]
         end
@@ -168,16 +163,14 @@ module Db2Query
         def query_result(query_name, columns, rows)
           definition = definitions[query_name]
           res_cols, def_cols = [columns.length, definition.length]
-  
+
           if res_cols != def_cols
             raise Db2Query::Error, "Wrong number of columns (query definitions #{def_cols}, query result #{res_cols})"
           end
 
           rows = rows.each do |row|
             columns.zip(row) do |col, val|
-              data_type = definition[col.to_sym]
-              raise Db2Query::Error, "No column `#{col}` found in #{name}Definitions" if data_type.nil?
-              data_type.deserialize(val)
+              data_type(query_name, col.to_sym).deserialize(val)
             end
           end
           Db2Query::Result.new(columns, rows)
