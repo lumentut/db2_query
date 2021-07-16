@@ -59,8 +59,7 @@ module Db2Query
         end
 
         def reset_id_when_required(query_name, sql)
-          definition = query_definition(query_name)
-          if insert_sql?(sql) && !definition[:id].nil?
+          if insert_sql?(sql) && !query_definition(query_name)[:id].nil?
             table_name = table_name_from_insert_sql(sql)
             connection.reset_id_sequence!(table_name)
           end
