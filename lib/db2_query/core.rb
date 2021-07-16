@@ -104,19 +104,19 @@ module Db2Query
 
         def query_definition(query_name)
           definition = definitions[query_name]
-          if definition.nil?
-            raise Db2Query::Error, "No query definition found for #{name}:#{query_name}"
-          end
+          raise StandardError if definition.nil?
           definition
+        rescue
+          raise Db2Query::Error, "No query definition found for #{name}:#{query_name}"
         end
 
         def data_type(query_name, column)
           definition = query_definition(query_name)
           data_type = definition[column]
-          if definition.nil? || data_type.nil?
-            raise Db2Query::Error, "Column `#{column}` not found at `#{name} query:#{query_name}` Query Definitions."
-          end
+          raise StandardError if definition.nil? || data_type.nil?
           data_type
+        rescue
+          raise Db2Query::Error, "Column `#{column}` not found at `#{name} query:#{query_name}` Query Definitions."
         end
 
         def query_binds(query_name, sql, args)
