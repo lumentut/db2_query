@@ -30,7 +30,7 @@ module Db2Query
             exec_query_result(query_name, body.strip, args)
           end
         else
-          raise Db2Query::Error, "The query body needs to be callable or is a SQL statement string"
+          raise Db2Query::QueryMethodError.new
         end
       end
       alias define query
@@ -104,19 +104,16 @@ module Db2Query
 
         def query_definition(query_name)
           definition = definitions[query_name]
-          raise StandardError if definition.nil?
+          raise Db2Query::QueryDefinitionError.new(name, query_name) if definition.nil?
           definition
-        rescue
-          raise Db2Query::Error, "No query definition found for #{name}:#{query_name}"
         end
 
         def data_type(query_name, column)
           definition = query_definition(query_name)
           data_type = definition[column]
-          raise StandardError if definition.nil? || data_type.nil?
+          invalid_data_type = definition.nil? || data_type.nil?
+          raise Db2Query::QueryDefinitionError.new(name, query_name, column) if invalid_data_type
           data_type
-        rescue
-          raise Db2Query::Error, "Column `#{column}` not found at `#{name} query:#{query_name}` Query Definitions."
         end
 
         def query_binds(query_name, sql, args)
@@ -124,9 +121,7 @@ module Db2Query
           args = args.first.is_a?(Hash) ? args.first : args
           given, expected = [args.length, length]
 
-          if given != expected
-            raise Db2Query::Error, "Wrong number of arguments (given #{given}, expected #{expected})"
-          end
+          raise Db2Query::ArgumentError.new(given, expected) unless given == expected
 
           binds = keys.map.with_index do |key, index|
             arg = args.is_a?(Hash) ? args[key.to_sym] : args[index]
@@ -144,9 +139,7 @@ module Db2Query
         def validate_columns(query_name, columns)
           definition = definitions[query_name]
           res_cols, def_cols = [columns.length, definition.length]
-          if res_cols != def_cols
-            raise Db2Query::Error, "Wrong number of columns (query definitions #{def_cols}, query result #{res_cols})"
-          end
+          raise Db2Query::ColumnError.new(def_cols, res_cols) if res_cols != def_cols
         end
 
         def serialized_rows(query_name, columns, rows)

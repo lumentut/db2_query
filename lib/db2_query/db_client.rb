@@ -34,7 +34,7 @@ module Db2Query
     def new_db_client
       ODBC.connect(dsn)
     rescue ::ODBC::Error => e
-      raise Db2Query::Error, "Unable to activate ODBC DSN connection #{e}"
+      raise Db2Query::ConnectionError.new(e.message)
     end
 
     def client

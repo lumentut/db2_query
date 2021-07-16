@@ -9,14 +9,14 @@ module Db2Query
     module ClassMethods
       def sql_with_list(sql, list)
         validate_sql(sql)
-        raise Db2Query::Error, "Missing @list pointer at SQL" if sql.scan(/\@list+/).length == 0
-        raise Db2Query::Error, "The arguments should be an array of list" unless list.is_a?(Array)
+        raise Db2Query::MissingListError.new  if sql.scan(/\@list+/).length == 0
+        raise Db2Query::ListTypeError.new unless list.is_a?(Array)
         sql.gsub("@list", "'#{list.join("', '")}'")
       end
 
       def sql_with_extention(sql, extention)
         validate_sql(sql)
-        raise Db2Query::Error, "Missing @extention pointer at SQL" if sql.scan(/\@extention+/).length == 0
+        raise Db2Query::ExtentionError.new if sql.scan(/\@extention+/).length == 0
         sql.gsub("@extention", extention.strip)
       end
 
@@ -26,7 +26,7 @@ module Db2Query
         raise StandardError if placeholder.empty?
         raise StandardError unless placeholder.key?(:query_name)
       rescue
-        raise Db2Query::Error, "Method `fetch`, `fetch_list`, and `exec_query` can only be implemented inside a lambda query"
+        raise Db2Query::ImplementationError.new
       end
 
       private

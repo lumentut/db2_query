@@ -6,6 +6,7 @@ require "active_support/concurrency/load_interlock_aware_monitor"
 require "active_model/type"
 require "connection_pool"
 require "odbc_utf8"
+require "db2_query/error"
 
 module Db2Query
   autoload :Version, "db2_query/version"
