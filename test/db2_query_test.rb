@@ -179,7 +179,7 @@ class Db2QueryTest < ActiveSupport::TestCase
 
   test "non string argument" do
     exception = assert_raise(Exception) { UserQuery.non_string }
-    assert_equal("The query body needs to be callable or is a sql string", exception.message)
+    assert_equal("The query body needs to be callable or is a SQL statement string", exception.message)
   end
 
   test "extention sql and list input" do
@@ -199,5 +199,15 @@ class Db2QueryTest < ActiveSupport::TestCase
     assert_equal "Missing @list pointer at SQL", exception_1.message
     exception_2 = assert_raise(Exception) { UserQuery.wrong_extention_pointer ["john", "doe"] }
     assert_equal "Missing @extention pointer at SQL", exception_2.message
+  end
+
+  test "lambda queries methods" do
+    error_message = "Method `fetch`, `fetch_list`, and `exec_query` can only be implemented inside a lambda query"
+    exception_1 = assert_raise(Exception) { UserQuery.wrong_fetch_query }
+    assert_equal error_message, exception_1.message
+    exception_2 = assert_raise(Exception) { UserQuery.wrong_fetch_list_query }
+    assert_equal error_message, exception_2.message
+    exception_3 = assert_raise(Exception) { UserQuery.wrong_exec_query }
+    assert_equal error_message, exception_3.message
   end
 end

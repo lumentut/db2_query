@@ -53,7 +53,23 @@ class UserQuery < Db2Query::Base
 
   query :by_email, SQL.("$email = ?")
 
-  query :by_first_name, SQL.("$first_name = ?")
+  query :by_first_name, SQL.("$first_name = ?")  
+
+  query :insert_record, <<-SQL
+    INSERT INTO users ($first_name, $last_name, $email) VALUES (?, ?, ?)
+  SQL
+
+  query :update_record, <<-SQL
+    UPDATE DB2INST1.USERS SET $email = ? WHERE $id = ?
+  SQL
+
+  query :delete_record, <<-SQL
+    DELETE FROM users WHERE $id = ?
+  SQL
+
+  # =================================
+  # WRONG IMPLEMENTATION
+  # =================================
 
   query :wrong_list_pointer, -> args {
     fetch_list(
@@ -75,15 +91,15 @@ class UserQuery < Db2Query::Base
     0
   end
 
-  query :insert_record, <<-SQL
-    INSERT INTO users ($first_name, $last_name, $email) VALUES (?, ?, ?)
-  SQL
+  def self.wrong_fetch_query
+    fetch("SELECT * FROM USERS", [])
+  end
 
-  query :update_record, <<-SQL
-    UPDATE DB2INST1.USERS SET $email = ? WHERE $id = ?
-  SQL
+  def self.wrong_fetch_list_query
+    fetch_list("SELECT * FROM USERS WHERE id IN (@list)", [[10001, 10002, 10003], []])
+  end
 
-  query :delete_record, <<-SQL
-    DELETE FROM users WHERE $id = ?
-  SQL
+  def self.wrong_exec_query
+    exec_query("SELECT * FROM USERS", [])
+  end
 end

@@ -20,6 +20,15 @@ module Db2Query
         sql.gsub("@extention", extention.strip)
       end
 
+      def validate_query_name_placeholder(placeholder)
+        raise StandardError if placeholder.nil?
+        raise StandardError unless placeholder.is_a?(Hash)
+        raise StandardError if placeholder.empty?
+        raise StandardError unless placeholder.key?(:query_name)
+      rescue
+        raise Db2Query::Error, "Method `fetch`, `fetch_list`, and `exec_query` can only be implemented inside a lambda query"
+      end
+
       private
         def trim_sql(sql)
           sql.tr("$", "")

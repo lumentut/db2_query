@@ -26,12 +26,11 @@ module Db2Query
             body.call(args << { query_name: query_name })
           end
         elsif body.is_a?(String) && body.strip.length > 0
-          sql = body.strip
           singleton_class.define_method(query_name) do |*args|
-            exec_query_result(query_name, sql, args)
+            exec_query_result(query_name, body.strip, args)
           end
         else
-          raise Db2Query::Error, "The query body needs to be callable or is a sql string"
+          raise Db2Query::Error, "The query body needs to be callable or is a SQL statement string"
         end
       end
       alias define query
@@ -46,11 +45,6 @@ module Db2Query
       def fetch_list(sql, args)
         list = args.shift
         fetch(sql_with_list(sql, list), args)
-      end
-
-      def fetch_extention(sql, args)
-        extention = args.shift
-        fetch(sql_with_extention(sql, extention), args)
       end
 
       private
@@ -73,11 +67,9 @@ module Db2Query
         end
 
         def query_name_from_lambda_args(args)
-          query_name = args.pop[:query_name]
-          if query_name.nil?
-            raise Db2Query::Error, "Method `exec_query`, `fetch`, `fetch_list`, and `fetch_extention` can only be implemented inside a lambda query"
-          end
-          query_name
+          placeholder = args.pop
+          validate_query_name_placeholder(placeholder)
+          placeholder[:query_name]
         end
 
         def method_missing(method_name, *args, &block)
@@ -119,8 +111,9 @@ module Db2Query
         end
 
         def data_type(query_name, column)
-          data_type = query_definition(query_name)[column]
-          if data_type.nil?
+          definition = query_definition(query_name)
+          data_type = definition[column]
+          if definition.nil? || data_type.nil?
             raise Db2Query::Error, "Column `#{column}` not found at `#{name} query:#{query_name}` Query Definitions."
           end
           data_type
