@@ -1,12 +1,25 @@
 # frozen_string_literal: true
 
 module Db2Query
-  module SqlMethods
+  module Helper
     def self.included(base)
       base.send(:extend, ClassMethods)
     end
 
     module ClassMethods
+      def sql_with_list(sql, list)
+        validate_sql(sql)
+        raise Db2Query::Error, "Missing @list pointer at SQL" if sql.scan(/\@list+/).length == 0
+        raise Db2Query::Error, "The arguments should be an array of list" unless list.is_a?(Array)
+        sql.gsub("@list", "'#{list.join("', '")}'")
+      end
+
+      def sql_with_extention(sql, extention)
+        validate_sql(sql)
+        raise Db2Query::Error, "Missing @extention pointer at SQL" if sql.scan(/\@extention+/).length == 0
+        sql.gsub("@extention", extention.strip)
+      end
+
       private
         def trim_sql(sql)
           sql.tr("$", "")
@@ -42,32 +55,11 @@ module Db2Query
         end
 
         def bind_variables(sql)
-          [trim_sql(sql), parameters(sql), placeholder_length(sql)]
+          [sql, parameters(sql), placeholder_length(sql)]
         end
 
-        def reset_id_when_required(query_name, sql)
-          definition = query_definition(query_name)
-          if insert_sql?(sql) && !definition[:id].nil?
-            table_name = table_name_from_insert_sql(sql)
-            reset_id_sequence(table_name)
-          end
-        end
-
-        def max_id(table_name)
-          query_value("SELECT COALESCE(MAX (ID),0) FROM #{table_name}")
-        end
-
-        def reset_id_sequence(table_name)
-          next_val = max_id(table_name) + 1
-          connection.execute <<-SQL
-            ALTER TABLE #{table_name}
-            ALTER COLUMN ID
-            RESTART WITH #{next_val}
-            SET INCREMENT BY 1
-            SET NO CYCLE
-            SET CACHE 500
-            SET NO ORDER;
-          SQL
+        def validate_sql(sql)
+          raise Db2Query::Error, "SQL have to be in string format" unless sql.is_a?(String)
         end
     end
   end

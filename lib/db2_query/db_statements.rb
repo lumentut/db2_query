@@ -62,7 +62,28 @@ module Db2Query
       end
     end
 
+    def reset_id_sequence(table_name)
+      next_val = max_id(table_name) + 1
+      execute <<-SQL
+        ALTER TABLE #{table_name}
+        ALTER COLUMN ID
+        RESTART WITH #{next_val}
+        SET INCREMENT BY 1
+        SET NO CYCLE
+        SET CACHE 500
+        SET NO ORDER;
+      SQL
+    end
+
     private
+      def raise_fetch_error
+        raise Db2Query::Error, "`fetch`, `fetch_list` and `fetch_extention` methods applied for SQL `select` statement only."
+      end
+
+      def max_id(table_name)
+        query_value("SELECT COALESCE(MAX (ID),0) FROM #{table_name}")
+      end
+
       def iud_sql?(sql)
         sql.match?(/insert into|update|delete/i)
       end
@@ -77,10 +98,6 @@ module Db2Query
         else
           sql
         end.tr("$", "")
-      end
-
-      def raise_fetch_error
-        raise Db2Query::Error, "`fetch` and `fetch_list` method only for SQL `select` statement."
       end
   end
 end

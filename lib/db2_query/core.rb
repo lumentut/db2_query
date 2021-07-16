@@ -14,7 +14,8 @@ module Db2Query
       end
 
       def exec_query_result(query_name, sql, args)
-        binds, args = query_binds(query_name, sql, args)
+        sql, binds, args = query_binds(query_name, sql, args)
+        reset_id_when_required(query_name, sql)
         columns, rows = connection.exec_query(sql, binds, args)
         query_result(query_name, columns, rows)
       end
@@ -36,8 +37,8 @@ module Db2Query
       alias define query
 
       def fetch(sql, args = [])
-        query_name = args.pop[:query_name]
-        binds, args = query_binds(query_name, sql, args)
+        query_name = query_name_from_lambda_args(args)
+        sql, binds, args = query_binds(query_name, sql, args)
         columns, rows = connection.exec_select_query(sql, binds, args)
         query_result(query_name, columns, rows)
       end
@@ -47,17 +48,9 @@ module Db2Query
         fetch(sql_with_list(sql, list), args)
       end
 
-      def sql_with_list(sql, list)
-        validate_sql(sql)
-        raise Db2Query::Error, "Missing @list pointer at SQL" if sql.scan(/\@list+/).length == 0
-        raise Db2Query::Error, "The arguments should be an array of list" unless list.is_a?(Array)
-        sql.gsub("@list", "'#{list.join("', '")}'")
-      end
-
-      def sql_with_extention(sql, extention)
-        validate_sql(sql)
-        raise Db2Query::Error, "Missing @extention pointer at SQL" if sql.scan(/\@extention+/).length == 0
-        sql.gsub("@extention", extention.strip)
+      def fetch_extention(sql, args)
+        extention = args.shift
+        fetch(sql_with_extention(sql, extention), args)
       end
 
       private
@@ -65,8 +58,12 @@ module Db2Query
           @formatters ||= Hash.new
         end
 
-        def validate_sql(sql)
-          raise Db2Query::Error, "SQL have to be in string format" unless sql.is_a?(String)
+        def reset_id_when_required(query_name, sql)
+          definition = query_definition(query_name)
+          if insert_sql?(sql) && !definition[:id].nil?
+            table_name = table_name_from_insert_sql(sql)
+            connection.reset_id_sequence(table_name)
+          end
         end
 
         def sql_statement_from_query(method_name, args)
@@ -79,15 +76,9 @@ module Db2Query
         def query_name_from_lambda_args(args)
           query_name = args.pop[:query_name]
           if query_name.nil?
-            raise Db2Query::Error, "Method `exec_query` can only be used inside a lambda query"
+            raise Db2Query::Error, "Method `exec_query`, `fetch`, `fetch_list`, and `fetch_extention` can only be implemented inside a lambda query"
           end
           query_name
-        end
-
-        def exec_query_result(query_name, sql, args)
-          binds, args = query_binds(query_name, sql, args)
-          columns, rows = connection.exec_query(sql, binds, args)
-          query_result(query_name, columns, rows)
         end
 
         def method_missing(method_name, *args, &block)
@@ -147,32 +138,36 @@ module Db2Query
 
           binds = keys.map.with_index do |key, index|
             arg = args.is_a?(Hash) ? args[key.to_sym] : args[index]
-            new_bind(query_name, key, arg)
+            [new_bind(query_name, key, arg), arg]
           end
 
           args = binds.map do |bind|
-            column = bind.name.to_sym
-            data_type(query_name, column).serialize(bind.value)
+            column, value = [bind.first.name.to_sym, bind.first.value]
+            data_type(query_name, column).serialize(value)
           end
 
-          reset_id_when_required(query_name, sql)
-
-          [binds.map { |bind| [bind, bind.value] }, args]
+          [sql, binds, args]
         end
 
-        def query_result(query_name, columns, rows)
+        def validate_columns(query_name, columns)
           definition = definitions[query_name]
           res_cols, def_cols = [columns.length, definition.length]
-
           if res_cols != def_cols
             raise Db2Query::Error, "Wrong number of columns (query definitions #{def_cols}, query result #{res_cols})"
           end
+        end
 
-          rows = rows.each do |row|
+        def serialized_rows(query_name, columns, rows)
+          rows.each do |row|
             columns.zip(row) do |col, val|
               data_type(query_name, col.to_sym).deserialize(val)
             end
           end
+        end
+
+        def query_result(query_name, columns, rows)
+          validate_columns(query_name, columns)
+          rows = serialized_rows(query_name, columns, rows)
           Db2Query::Result.new(columns, rows)
         end
     end
