@@ -62,7 +62,7 @@ module Db2Query
           definition = query_definition(query_name)
           if insert_sql?(sql) && !definition[:id].nil?
             table_name = table_name_from_insert_sql(sql)
-            connection.reset_id_sequence(table_name)
+            connection.reset_id_sequence!(table_name)
           end
         end
 

@@ -62,7 +62,7 @@ module Db2Query
       end
     end
 
-    def reset_id_sequence(table_name)
+    def reset_id_sequence!(table_name)
       next_val = max_id(table_name) + 1
       execute <<-SQL
         ALTER TABLE #{table_name}
