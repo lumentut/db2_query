@@ -40,9 +40,6 @@ module Db2Query
   end
 
   class ExtentionError < StandardError
-    def message
-      "Missing @extention pointer at SQL"
-    end
   end
 
   class ImplementationError < StandardError
@@ -52,19 +49,13 @@ module Db2Query
   end
 
   class ListTypeError < StandardError
-    def message
-      "The arguments should be an array of list"
-    end
   end
 
   class MissingListError < StandardError
-    def message
-      "Missing @list pointer at SQL"
-    end
   end
 
   class QueryDefinitionError < StandardError
-    def initialize(klass, query_name, column = nil)
+    def initialize(klass, query_name = nil, column = nil)
       @klass = klass
       @query_name = query_name
       @column = column
@@ -72,10 +63,12 @@ module Db2Query
     end
 
     def message
-      unless column.nil?
-        "Column `#{@column}` not found at `#{@klass} query:#{@query_name}` Query Definitions."
-      else
+      if @query_name.nil?
+        "Definitions::#{@klass}Definitions file not found."
+      elsif @column.nil?
         "No query definition found for #{@klass}:#{@query_name}"
+      else
+        "Column `#{@column}` not found at `#{@klass} query:#{@query_name}` Query Definitions."
       end
     end
   end

@@ -31,6 +31,26 @@ class Db2QueryTest < ActiveSupport::TestCase
     assert_equal [:dsn, :idle, :pool, :timeout], config.keys.sort
   end
 
+  test "query definitions" do
+    definitions = UserQuery.definitions
+    query_name = :all
+    query_definition =  definitions.queries.fetch(query_name)
+    columns_definition = query_definition.columns
+    type_definitions = query_definition.types
+    assert_equal query_definition.query_name, query_name
+    assert_equal type_definitions.length, columns_definition.length
+    assert_equal ActiveModel::Type::Integer, type_definitions.values.first.class
+    assert_equal true, columns_definition.values.first.is_a?(Array)
+  end
+
+  test "query definitions exception" do
+    exception = assert_raise(Exception) { DefinitionsQuery.definitions }
+    assert_equal "Not supported `others` data type", exception.message
+    exception = assert_raise(Exception) { BlankDefinitionsQuery.definitions }
+    definition_class = "Definitions::BlankDefinitionsQueryDefinitions"
+    assert_equal "Please describe query definitions at #{definition_class}", exception.message
+  end
+
   test "thread safe connection" do
     threads = []
     pool_id = Db2Query::Base.connection.object_id
@@ -100,7 +120,7 @@ class Db2QueryTest < ActiveSupport::TestCase
   end
 
   test "sql select statement" do
-    user = UserQuery.all.records.first
+    user = UserQuery.all.record
 
     assert_nothing_raised do
       UserQuery.by_first_name_and_email first_name: user.first_name, email: user.email
@@ -150,7 +170,6 @@ class Db2QueryTest < ActiveSupport::TestCase
     email = "john.doe@yahoo.com"
 
     user_inserted = UserQuery.insert_record first_name, last_name, email
-    user_inserted = user_inserted.record
 
     assert_equal user_inserted.id, last_id + 1
     assert_equal user_inserted.first_name, first_name
@@ -161,7 +180,6 @@ class Db2QueryTest < ActiveSupport::TestCase
 
     email_updated = "john.doe@gmail.com"
     user_updated = UserQuery.update_record email_updated, user_id
-    user_updated = user_updated.record
 
     assert_equal user_updated.id, user_id
     assert_equal user_updated.first_name, first_name
@@ -169,12 +187,19 @@ class Db2QueryTest < ActiveSupport::TestCase
     assert_equal user_updated.email, email_updated
 
     user_deleted = UserQuery.delete_record user_id
-    user_deleted = user_deleted.record
 
     assert_equal user_deleted.id, user_id
     assert_equal user_deleted.first_name, first_name
     assert_equal user_deleted.last_name, last_name
     assert_equal user_deleted.email, user_updated.email
+  end
+
+  test "insert records auto increment id" do
+    6.times {
+      UserQuery.insert_record Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email
+    }
+    last_user = UserQuery.all.records.last
+    assert_equal 10015, last_user.id
   end
 
   test "non string argument" do
@@ -199,9 +224,11 @@ class Db2QueryTest < ActiveSupport::TestCase
     assert_equal "Missing @list pointer at SQL", exception_1.message
     exception_2 = assert_raise(Exception) { UserQuery.wrong_extention_pointer ["john", "doe"] }
     assert_equal "Missing @extention pointer at SQL", exception_2.message
+    exception_3 = assert_raise(Exception) { UserQuery.by_ids 10000, 10001 }
+    assert_equal "The arguments should be an array of list", exception_3.message
   end
 
-  test "lambda queries methods" do
+  test "lambda queries exceptions" do
     error_message = "Method `fetch`, `fetch_list`, and `exec_query` can only be implemented inside a lambda query"
     exception_1 = assert_raise(Exception) { UserQuery.wrong_fetch_query }
     assert_equal error_message, exception_1.message

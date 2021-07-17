@@ -9,24 +9,22 @@ module Db2Query
     module ClassMethods
       def sql_with_list(sql, list)
         validate_sql(sql)
-        raise Db2Query::MissingListError.new  if sql.scan(/\@list+/).length == 0
-        raise Db2Query::ListTypeError.new unless list.is_a?(Array)
-        sql.gsub("@list", "'#{list.join("', '")}'")
+        if sql.scan(/\@list+/).length == 0
+          raise Db2Query::MissingListError, "Missing @list pointer at SQL"
+        elsif !list.is_a?(Array)
+          raise Db2Query::ListTypeError, "The arguments should be an array of list"
+        else
+          sql.gsub("@list", "'#{list.join("', '")}'")
+        end
       end
 
       def sql_with_extention(sql, extention)
         validate_sql(sql)
-        raise Db2Query::ExtentionError.new if sql.scan(/\@extention+/).length == 0
-        sql.gsub("@extention", extention.strip)
-      end
-
-      def validate_query_name_placeholder(placeholder)
-        raise StandardError if placeholder.nil?
-        raise StandardError unless placeholder.is_a?(Hash)
-        raise StandardError if placeholder.empty?
-        raise StandardError unless placeholder.key?(:query_name)
-      rescue
-        raise Db2Query::ImplementationError.new
+        if sql.scan(/\@extention+/).length == 0
+          raise Db2Query::ExtentionError, "Missing @extention pointer at SQL"
+        else
+          sql.gsub("@extention", extention.strip)
+        end
       end
 
       private
@@ -56,7 +54,7 @@ module Db2Query
         end
 
         def parameters(sql)
-          sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "") }
+          sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
         end
 
         def placeholder_length(sql)

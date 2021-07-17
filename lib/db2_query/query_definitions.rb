@@ -26,18 +26,16 @@ module Db2Query
         DATA_TYPES_MAP
       end
 
-      def set_definitions
-        @definitions = new_definitions
-      end
-
       def definitions
-        @definitions
+        @definitions ||= new_definitions
       end
 
       private
         def new_definitions
-          klass = "Definitions::#{name}Definitions"
-          Object.const_get(klass).new(data_types_map).query_definitions
+          definition_class = "Definitions::#{name}Definitions"
+          Object.const_get(definition_class).new(data_types_map)
+        rescue Exception => e
+          raise Db2Query::Error, e.message
         end
     end
   end

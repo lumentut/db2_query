@@ -9,7 +9,7 @@ module Db2Query
     include Core
 
     def self.inherited(subclass)
-      subclass.set_definitions
+      subclass.definitions.initialize_types
     end
   end
 end

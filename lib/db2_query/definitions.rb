@@ -2,12 +2,14 @@
 
 module Db2Query
   class Definitions
-    attr_accessor :types
+    attr_accessor :types, :types_map
 
-    class DataTypes
-      attr_accessor :columns
+    class QueryDefinition
+      attr_reader :columns, :query_name, :types
 
-      def initialize
+      def initialize(query_name)
+        @query_name = query_name
+        @types = {}
         @columns = {}
       end
 
@@ -18,30 +20,31 @@ module Db2Query
       def method_missing(method_name, *args, &block)
         map_column(method_name, args)
       end
+
+      def data_type(key)
+        types.fetch(key)
+      rescue
+        raise Db2Query::QueryDefinitionError.new(name, query_name, key)
+      end
+
+      def length
+        columns.length
+      end
     end
 
     def initialize(types_map)
+      @types_map = types_map
       describe
-      @types = {}
-      initialize_types(types_map)
     end
-
-    alias query_definitions types
 
     def describe
-      raise Db2Query::Error, "No Query Definitions found"
+      raise Db2Query::Error, "Please describe query definitions at #{self.class.name}"
     end
 
-    def initialize_types(types_map)
-      queries.each do |query, definitions|
-        types[query] = definitions.each_with_object({}) do |data, hash|
-          col, definition = data
-          data_type, options = definition
-          klass = types_map[data_type]
-          if klass.nil?
-            raise Db2Query::Error, "No column `#{col}` data types found in `query :#{query}` Query Definitions"
-          end
-          hash[col] = options.nil? ? klass.new : klass.new(**options)
+    def initialize_types
+      queries.each do |query_name, definition|
+        definition.columns.each do |column, col_def|
+          definition.types.store(column, data_type_instance(col_def))
         end
       end
     end
@@ -51,9 +54,24 @@ module Db2Query
     end
 
     def query_definition(query_name, &block)
-      data_types = DataTypes.new
-      yield data_types
-      queries[query_name] = data_types.columns
+      definition = QueryDefinition.new(query_name)
+      yield definition
+      queries[query_name] = definition
     end
+
+    def lookup(query_name)
+      queries.fetch(query_name)
+    rescue
+      raise Db2Query::QueryDefinitionError.new(name, query_name)
+    end
+
+    private
+      def data_type_instance(column_definition)
+        data_type, options = column_definition
+        klass = @types_map.fetch(data_type)
+        options.nil? ? klass.new : klass.new(**options)
+      rescue
+        raise Db2Query::Error, "Not supported `#{data_type}` data type"
+      end
   end
 end

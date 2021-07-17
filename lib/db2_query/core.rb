@@ -53,7 +53,8 @@ module Db2Query
         end
 
         def reset_id_when_required(query_name, sql)
-          if insert_sql?(sql) && !query_definition(query_name)[:id].nil?
+          column_id = definitions.lookup(query_name).columns.fetch(:id)
+          if insert_sql?(sql) && !column_id.nil?
             table_name = table_name_from_insert_sql(sql)
             connection.reset_id_sequence!(table_name)
           end
@@ -68,8 +69,9 @@ module Db2Query
 
         def query_name_from_lambda_args(args)
           placeholder = args.pop
-          validate_query_name_placeholder(placeholder)
-          placeholder[:query_name]
+          placeholder.fetch(:query_name)
+        rescue
+          raise Db2Query::ImplementationError.new
         end
 
         def method_missing(method_name, *args, &block)
@@ -95,25 +97,12 @@ module Db2Query
           args
         end
 
-        class Bind < Struct.new(:name, :value, :index)
+        class Bind < Struct.new(:name, :value)
         end
 
-        def new_bind(name, key, value)
-          Bind.new(key, value, nil)
-        end
-
-        def query_definition(query_name)
-          definition = definitions[query_name]
-          raise Db2Query::QueryDefinitionError.new(name, query_name) if definition.nil?
-          definition
-        end
-
-        def data_type(query_name, column)
-          definition = query_definition(query_name)
-          data_type = definition[column]
-          invalid_data_type = definition.nil? || data_type.nil?
-          raise Db2Query::QueryDefinitionError.new(name, query_name, column) if invalid_data_type
-          data_type
+        def type_casted_bind(type, column, value)
+          type_casted_arg = type.serialize(value)
+          [Bind.new(column, type_casted_arg), type_casted_arg]
         end
 
         def query_binds(query_name, sql, args)
@@ -123,36 +112,32 @@ module Db2Query
 
           raise Db2Query::ArgumentError.new(given, expected) unless given == expected
 
+          definition = definitions.lookup(query_name)
+
           binds = keys.map.with_index do |key, index|
-            arg = args.is_a?(Hash) ? args[key.to_sym] : args[index]
-            [new_bind(query_name, key, arg), arg]
+            arg = args.is_a?(Hash) ? args[key] : args[index]
+            data_type = definition.data_type(key)
+            type_casted_bind(data_type, key.to_s, arg)
           end
 
-          args = binds.map do |bind|
-            column, value = [bind.first.name.to_sym, bind.first.value]
-            data_type(query_name, column).serialize(value)
-          end
+          args = binds.map { |bind| bind.first.value }
 
           [sql, binds, args]
         end
 
-        def validate_columns(query_name, columns)
-          definition = definitions[query_name]
-          res_cols, def_cols = [columns.length, definition.length]
-          raise Db2Query::ColumnError.new(def_cols, res_cols) if res_cols != def_cols
-        end
-
-        def serialized_rows(query_name, columns, rows)
+        def deserialized_rows(definition, columns, rows)
           rows.each do |row|
             columns.zip(row) do |col, val|
-              data_type(query_name, col.to_sym).deserialize(val)
+              definition.data_type(col.to_sym).deserialize(val)
             end
           end
         end
 
         def query_result(query_name, columns, rows)
-          validate_columns(query_name, columns)
-          rows = serialized_rows(query_name, columns, rows)
+          definition = definitions.lookup(query_name)
+          res_cols, def_cols = [columns.length, definition.length]
+          raise Db2Query::ColumnError.new(def_cols, res_cols) if res_cols != def_cols
+          rows = deserialized_rows(definition, columns, rows)
           Db2Query::Result.new(columns, rows)
         end
     end
