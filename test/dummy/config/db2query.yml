@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
 development:
-  dsn: ARUNIT
+  dsn: LIBTEST
   idle: 5
   pool: 5
   timeout: 5
 
 test:
-  dsn: ARUNIT
+  dsn: LIBTEST
   idle: 5
   pool: 5
   timeout: 5
 
 production:
-  dsn: ARUNIT
+  dsn: LIBPROD
   idle: 5
   pool: 5
   timeout: 5

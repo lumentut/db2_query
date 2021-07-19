@@ -22,9 +22,10 @@ module Db2Query
       end
 
       def data_type(key)
-        types.fetch(key)
+        column = "#{key}".split(".").last.downcase
+        types.fetch(column.to_sym)
       rescue
-        raise Db2Query::QueryDefinitionError.new(name, query_name, key)
+        raise Db2Query::Error, "No column #{column} found at query: #{query_name} definitions"
       end
 
       def length

@@ -2,43 +2,43 @@
 
 class UserQuery < Db2Query::Base 
   def all_sql
-    "SELECT * FROM DB2INST1.USERS"
+    "SELECT * FROM USERS"
   end
  
   def by_id_sql
-    "SELECT * FROM DB2INST1.USERS WHERE $id = ?"
+    "SELECT * FROM USERS WHERE $id = ?"
   end
  
   def by_first_name_and_email_sql
-    "SELECT * FROM DB2INST1.USERS WHERE $first_name = ? AND $email = ?"
+    "SELECT * FROM USERS WHERE $first_name = ? AND $email = ?"
   end
 
   query :by_last_name_and_email, <<-SQL
-    SELECT * FROM DB2INST1.USERS WHERE $last_name = ? AND $email = ?
+    SELECT * FROM USERS WHERE $last_name = ? AND $email = ?
   SQL
 
   query :find_by, <<-SQL
-    SELECT * FROM DB2INST1.USERS WHERE $id = ?
+    SELECT * FROM USERS WHERE $id = ?
   SQL
 
   query :id_gt, <<-SQL
-    SELECT * FROM DB2INST1.USERS WHERE $id > ?
+    SELECT * FROM USERS WHERE $id > ?
   SQL
 
   query :id_greater_than, -> args {
-    fetch("SELECT * FROM DB2INST1.USERS WHERE $id > ?", args)
+    fetch("SELECT * FROM USERS WHERE $id > ?", args)
   }
 
   query :by_first_name_and_last_name, -> args {
-    fetch("SELECT * FROM DB2INST1.USERS WHERE $first_name = ? AND $last_name = ?", args)
+    fetch("SELECT * FROM USERS WHERE $first_name = ? AND $last_name = ?", args)
   }
 
   query :by_ids, -> args {
-    fetch_list("SELECT * FROM DB2INST1.USERS WHERE $first_name LIKE ? AND id IN (@list)", args)
+    fetch_list("SELECT * FROM USERS WHERE $first_name LIKE ? AND id IN (@list)", args)
   }
 
   SQL = -> extention {
-    sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE @extention", extention)
+    sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
   }
 
   query :by_names, -> args {
@@ -60,7 +60,7 @@ class UserQuery < Db2Query::Base
   SQL
 
   query :update_record, <<-SQL
-    UPDATE DB2INST1.USERS SET $email = ? WHERE $id = ?
+    UPDATE USERS SET $email = ? WHERE $id = ?
   SQL
 
   query :delete_record, <<-SQL
@@ -78,7 +78,7 @@ class UserQuery < Db2Query::Base
   }
 
   _SQL = -> extention {
-    sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE extention", extention)
+    sql_with_extention("SELECT * FROM USERS WHERE extention", extention)
   }
 
   query :wrong_extention_pointer, -> args {

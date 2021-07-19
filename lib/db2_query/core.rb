@@ -53,7 +53,7 @@ module Db2Query
         end
 
         def reset_id_when_required(query_name, sql)
-          column_id = definitions.lookup(query_name).columns.fetch(:id)
+          column_id = definitions.lookup(query_name).columns.fetch(:id, nil)
           if insert_sql?(sql) && !column_id.nil?
             table_name = table_name_from_insert_sql(sql)
             connection.reset_id_sequence!(table_name)
@@ -101,7 +101,8 @@ module Db2Query
         end
 
         def type_casted_bind(type, column, value)
-          type_casted_arg = type.serialize(value)
+          value = type.serialize(value)
+          type_casted_arg = _type_cast(value)
           [Bind.new(column, type_casted_arg), type_casted_arg]
         end
 
@@ -121,7 +122,6 @@ module Db2Query
           end
 
           args = binds.map { |bind| bind.first.value }
-
           [sql, binds, args]
         end
 

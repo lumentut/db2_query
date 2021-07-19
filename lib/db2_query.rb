@@ -17,6 +17,7 @@ module Db2Query
   autoload :DbStatements, "db2_query/db_statements"
   autoload :Validations, "db2_query/validations"
   autoload :Helper, "db2_query/helper"
+  autoload :Quoting, "db2_query/quoting"
 
   module Type
     autoload :Binary, "db2_query/type/binary"

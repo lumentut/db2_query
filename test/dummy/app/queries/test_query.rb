@@ -1,42 +1,42 @@
 class TestQuery < Db2Query::Base
   def all_sql
-    "SELECT * FROM DB2INST1.USERS"
+    "SELECT * FROM USERS"
   end
 
   def by_id_sql
-    "SELECT * FROM DB2INST1.USERS WHERE $id = ?"
+    "SELECT * FROM USERS WHERE $id = ?"
   end
 
   def by_name_and_email_sql
-    "SELECT * FROM DB2INST1.USERS WHERE $first_name = ? AND $email = ?"
+    "SELECT * FROM USERS WHERE $first_name = ? AND $email = ?"
   end
 
   query :by_name_and_email, -> args {
-    fetch("SELECT * FROM DB2INST1.USERS WHERE $first_name = ? AND $email = ?", args)
+    fetch("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", args)
   }
 
   query :find_by, <<-SQL
-    SELECT * FROM DB2INST1.USERS WHERE $id = ?
+    SELECT * FROM USERS WHERE $id = ?
   SQL
 
   query :id_gt, <<-SQL
-    SELECT * FROM DB2INST1.USERS WHERE $id > ?
+    SELECT * FROM USERS WHERE $id > ?
   SQL
 
   query :id_greater_than, -> args {
-    fetch("SELECT * FROM DB2INST1.USERS WHERE $id > ?", args)
+    fetch("SELECT * FROM USERS WHERE $id > ?", args)
   }
 
   query :user_by_ids, -> args {
-    fetch_list("SELECT * FROM DB2INST1.USERS WHERE ID IN (@list)", args)
+    fetch_list("SELECT * FROM USERS WHERE ID IN (@list)", args)
   }
 
   _SQL = -> extention {
-    sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE @extention", extention)
+    sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
   }
 
   __SQL = -> extention {
-    sql_with_extention("SELECT * FROM DB2INST1.USERS WHERE extention", extention)
+    sql_with_extention("SELECT * FROM USERS WHERE extention", extention)
   }
 
   query :wrong_list_pointer, -> args {
@@ -72,7 +72,7 @@ class TestQuery < Db2Query::Base
   }
 
   query :update_record, <<-SQL
-    UPDATE DB2INST1.USERS SET $email = ? WHERE $id = ?
+    UPDATE USERS SET $email = ? WHERE $id = ?
   SQL
 
   query :delete_record, <<-SQL

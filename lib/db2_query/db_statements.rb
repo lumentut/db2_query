@@ -45,9 +45,9 @@ module Db2Query
     end
 
     def run_query(sql, args = [])
-      sql = db2_spec_sql(sql)
       pool do |odbc_conn|
         begin
+          sql = db2_spec_sql(sql)
           if args.empty?
             stmt = odbc_conn.run(sql)
           else

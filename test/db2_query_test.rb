@@ -82,7 +82,7 @@ class Db2QueryTest < ActiveSupport::TestCase
   end
 
   test "db client expiration" do
-    config = { dsn: "ARUNIT", idle: 0.04 }
+    config = { dsn: "LIBTEST", idle: 0.04 }
     db_client = Db2Query::DbClient.new(config)
     client_1 = db_client.client
     assert_equal false, db_client.expire?
