@@ -124,20 +124,17 @@ module Db2Query
           [sql, binds, args]
         end
 
-        def deserialized_rows(definition, columns, rows)
-          rows.each do |row|
-            columns.zip(row).map do |col, val|
-              definition.data_type(col.to_sym).deserialize(val)
-            end
+        def validate_columns(columns, definition)
+          res_cols, def_cols = [columns.length, definition.length]
+          if res_cols != def_cols
+            raise Db2Query::ColumnError.new(def_cols, res_cols)
           end
         end
 
         def query_result(query_name, columns, rows)
           definition = definitions.lookup(query_name)
-          res_cols, def_cols = [columns.length, definition.length]
-          raise Db2Query::ColumnError.new(def_cols, res_cols) if res_cols != def_cols
-          rows = deserialized_rows(definition, columns, rows)
-          Db2Query::Result.new(columns, rows)
+          validate_columns(columns, definition)
+          Db2Query::Result.new(columns, rows, definition)
         end
     end
   end

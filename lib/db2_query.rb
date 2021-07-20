@@ -20,6 +20,7 @@ module Db2Query
   autoload :Quoting, "db2_query/quoting"
 
   module Type
+    autoload :Value, "db2_query/type/value"
     autoload :Binary, "db2_query/type/binary"
     autoload :Boolean, "db2_query/type/boolean"
     autoload :Decimal, "db2_query/type/decimal"

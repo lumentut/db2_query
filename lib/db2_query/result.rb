@@ -2,36 +2,34 @@
 
 module Db2Query
   class Result < ActiveRecord::Result
-    def initialize(columns, rows)
-      super(columns, rows, {})
-    end
+    attr_reader :definition
 
-    def includes_column?(name)
-      @columns.include? name
+    def initialize(columns, rows, definition)
+      @definition = definition
+      super(columns, rows, {})
     end
 
     def record
       return nil if rows.empty?
-      @record ||= Record.new(rows[0], columns)
+      @record ||= new_record(rows.first)
     end
 
     def records
-      @records ||= rows.map do |row|
-        Record.new(row, columns)
-      end
+      @records ||= rows.map { |row| new_record(row) }
+    end
+
+    def length
+      columns.length
     end
 
     def to_h
       rows.map do |row|
-        columns.zip(row).each_with_object({}) { |cr, h| h[cr[0].to_sym] = cr[1] }
-      end
-    end
-
-    def method_missing(method_name, *args, &block)
-      if record.respond_to?(method_name)
-        record.send(method_name)
-      else
-        super
+        index, hash = [0, {}]
+        while index < length
+          hash[columns[index].to_sym] = row[index]
+          index += 1
+        end
+        hash
       end
     end
 
@@ -42,10 +40,12 @@ module Db2Query
     end
 
     class Record
-      def initialize(row, columns)
-        columns.zip(row) do |col, val|
-          class_eval { attr_accessor "#{col}" }
-          send("#{col}=", val)
+      def initialize(row, columns, definition)
+        index, hash = [0, {}]
+        while index < columns.length
+          col, val = [columns[index], row[index]]
+          add_attribute(col, val, definition)
+          index += 1
         end
       end
 
@@ -59,6 +59,26 @@ module Db2Query
         end
         "#<Record #{inspection}>"
       end
+
+      private
+        def add_attribute(attr_name, value, definition)
+          class_eval { attr_accessor "#{attr_name}" }
+          data_type = definition.data_type(attr_name)
+          send("#{attr_name}=", data_type.deserialize(value))
+        end
     end
+
+    private
+      def new_record(row)
+        Record.new(row, columns, definition)
+      end
+
+      def method_missing(method_name, *args, &block)
+        if record.respond_to?(method_name)
+          record.send(method_name)
+        else
+          super
+        end
+      end
   end
 end

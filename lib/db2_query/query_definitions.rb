@@ -10,7 +10,7 @@ module Db2Query
       DATA_TYPES_MAP = {
         boolean:  Db2Query::Type::Boolean,
         varbinary: Db2Query::Type::Binary,
-        binary: Db2Query::Type::String,
+        binary: Db2Query::Type::Binary,
         string: Db2Query::Type::String,
         varchar: Db2Query::Type::Text,
         text: Db2Query::Type::Text,
