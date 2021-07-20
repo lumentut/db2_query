@@ -100,10 +100,9 @@ module Db2Query
         class Bind < Struct.new(:name, :value)
         end
 
-        def type_casted_bind(type, column, value)
+        def serialized_bind(type, column, value)
           value = type.serialize(value)
-          type_casted_arg = _type_cast(value)
-          [Bind.new(column, type_casted_arg), type_casted_arg]
+          [Bind.new(column, value), value]
         end
 
         def query_binds(query_name, sql, args)
@@ -118,7 +117,7 @@ module Db2Query
           binds = keys.map.with_index do |key, index|
             arg = args.is_a?(Hash) ? args[key] : args[index]
             data_type = definition.data_type(key)
-            type_casted_bind(data_type, key.to_s, arg)
+            serialized_bind(data_type, key.to_s, arg)
           end
 
           args = binds.map { |bind| bind.first.value }
@@ -127,7 +126,7 @@ module Db2Query
 
         def deserialized_rows(definition, columns, rows)
           rows.each do |row|
-            columns.zip(row) do |col, val|
+            columns.zip(row).map do |col, val|
               definition.data_type(col.to_sym).deserialize(val)
             end
           end
