@@ -44,9 +44,10 @@ CREATE_TABLE_SQL_FILES = Dir[SQL_FILES_DIR + "/create_*"]
 
 CREATE_TABLE_SQL_FILES.each do |sql_file|
   sql = File.read(sql_file)
-  puts sql
   @connection.execute(sql)
 end
+
+INSERT_USERS_SQL_FILE = SQL_FILES_DIR + "/insert_users.sql"
 
 INSERT_USER_SQL = File.read(INSERT_USERS_SQL_FILE)
 (10000...10010).each do
