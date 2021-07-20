@@ -119,6 +119,10 @@ class Db2QueryTest < ActiveSupport::TestCase
     end
   end
 
+  test "user data available" do
+    assert_equal true, !UserQuery.all.records.empty?
+  end
+
   test "sql select statement" do
     user = UserQuery.all.record
 
