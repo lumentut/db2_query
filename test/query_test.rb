@@ -71,4 +71,29 @@ class QueryTest < ActiveSupport::TestCase
     sorted_args = query.serialized_args({ email: email , first_name: first_name})
     assert_equal [first_name, email], sorted_args
   end
+
+  def fetch(sql, args)
+    assert_equal "FETCH SQL", sql
+
+    placeholder = args.pop
+    query_name = placeholder.fetch(:query_name)
+
+    assert_equal :by_names, query_name
+
+    users = UserQuery.all.to_h
+    user_names = users.map { |user| user[:first_name] }
+
+    assert_equal user_names, args.first
+  end
+
+  test "fetch query" do
+    users = UserQuery.all.to_h
+    user_names = users.map { |user| user[:first_name] }
+
+    UserQuery.query :by_names, -> args {
+      fetch("FETCH SQL", args)
+    }
+
+    UserQuery.by_names user_names
+  end
 end
