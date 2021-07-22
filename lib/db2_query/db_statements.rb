@@ -98,7 +98,7 @@ module Db2Query
           "SELECT * FROM #{iud_ref_table(sql)} (#{sql})"
         else
           sql
-        end.tr("$", "")
+        end
       end
   end
 end

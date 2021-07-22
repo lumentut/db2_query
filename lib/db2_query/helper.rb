@@ -28,10 +28,6 @@ module Db2Query
       end
 
       private
-        def trim_sql(sql)
-          sql.tr("$", "")
-        end
-
         def insert_sql?(sql)
           sql.match?(/insert/i)
         end
@@ -53,16 +49,8 @@ module Db2Query
           sql_query_methods.include?(sql_query_name)
         end
 
-        def sql_arg_keys(sql)
-          sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
-        end
-
         def placeholder_length(sql)
           sql.scan(/\?/i).length
-        end
-
-        def bind_variables(sql)
-          [sql, parameters(sql), placeholder_length(sql)]
         end
 
         def validate_sql(sql)
