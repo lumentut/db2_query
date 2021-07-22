@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "thor"
+
 class BaseCLI < Thor::Group
   include Thor::Actions
 
