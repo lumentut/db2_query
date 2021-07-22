@@ -18,6 +18,7 @@ module Db2Query
   autoload :Validations, "db2_query/validations"
   autoload :Helper, "db2_query/helper"
   autoload :Quoting, "db2_query/quoting"
+  autoload :DataType, "db2_query/data_type"
 
   module Type
     autoload :Value, "db2_query/type/value"

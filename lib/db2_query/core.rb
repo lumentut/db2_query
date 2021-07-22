@@ -11,27 +11,8 @@ module Db2Query
 
       delegate :query, :query_rows, :query_value, :query_values, :execute, to: :connection
 
-      DATA_TYPES_MAP = {
-        boolean:  Db2Query::Type::Boolean,
-        varbinary: Db2Query::Type::Binary,
-        binary: Db2Query::Type::Binary,
-        string: Db2Query::Type::String,
-        varchar: Db2Query::Type::Text,
-        text: Db2Query::Type::Text,
-        decimal: Db2Query::Type::Decimal,
-        integer: ActiveRecord::Type::Integer,
-        time: ActiveRecord::Type::Time,
-        date: ActiveRecord::Type::Date,
-        date_time: ActiveRecord::Type::DateTime,
-        float: ActiveRecord::Type::Float
-      }
-
       def initiation
         yield(self) if block_given?
-      end
-
-      def data_types_map
-        DATA_TYPES_MAP
       end
 
       def define_query_definitions
