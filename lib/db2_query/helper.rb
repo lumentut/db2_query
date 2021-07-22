@@ -40,7 +40,7 @@ module Db2Query
           sql.split("INTO ").last.split(" ").first
         end
 
-        def sql_methods
+        def sql_query_methods
           self.instance_methods.grep(/_sql/)
         end
 
@@ -48,12 +48,12 @@ module Db2Query
           "#{method_name}_sql".to_sym
         end
 
-        def sql_method?(method_name)
+        def sql_query_method?(method_name)
           sql_query_name = sql_query_symbol(method_name)
-          sql_methods.include?(sql_query_name)
+          sql_query_methods.include?(sql_query_name)
         end
 
-        def parameters(sql)
+        def sql_arg_keys(sql)
           sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
         end
 

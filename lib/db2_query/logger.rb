@@ -2,6 +2,9 @@
 
 module Db2Query
   module Logger
+    class Bind < Struct.new(:name, :value)
+    end
+
     def translate_exception_class(e, sql, binds)
       message = "#{e.class.name}: #{e.message}"
 
@@ -12,11 +15,19 @@ module Db2Query
       exception
     end
 
-    def log(sql, name = "SQL", binds = [], args = [], &block)
+    def logger_binds(query, args)
+      query.keys.map.with_index do |key, index|
+        arg = args.is_a?(Hash) ? args[key] : args[index]
+        [Bind.new(query.column_from_key(key), arg), arg]
+      end
+    end
+
+    def log(query, args = [], &block)
+      binds = logger_binds(query, args)
       @instrumenter.instrument(
         "sql.active_record",
-        sql:               sql,
-        name:              name,
+        sql:               query.sql,
+        name:              "SQL",
         binds:             binds,
         type_casted_binds: args,
         statement_name:    nil,
@@ -26,7 +37,7 @@ module Db2Query
           yield
         end
       rescue => e
-        raise translate_exception_class(e, sql, binds)
+        raise translate_exception_class(e, query.sql, binds)
       end
     end
 

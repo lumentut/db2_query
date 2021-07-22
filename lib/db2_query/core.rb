@@ -7,17 +7,40 @@ module Db2Query
     end
 
     module ClassMethods
+      attr_reader :definitions
+
       delegate :query, :query_rows, :query_value, :query_values, :execute, to: :connection
+
+      DATA_TYPES_MAP = {
+        boolean:  Db2Query::Type::Boolean,
+        varbinary: Db2Query::Type::Binary,
+        binary: Db2Query::Type::Binary,
+        string: Db2Query::Type::String,
+        varchar: Db2Query::Type::Text,
+        text: Db2Query::Type::Text,
+        decimal: Db2Query::Type::Decimal,
+        integer: ActiveRecord::Type::Integer,
+        time: ActiveRecord::Type::Time,
+        date: ActiveRecord::Type::Date,
+        date_time: ActiveRecord::Type::DateTime,
+        float: ActiveRecord::Type::Float
+      }
 
       def initiation
         yield(self) if block_given?
       end
 
-      def exec_query_result(query_name, sql, args)
-        sql, binds, args = query_binds(query_name, sql, args)
-        reset_id_when_required(query_name, sql)
-        columns, rows = connection.exec_query(sql, binds, args)
-        query_result(query_name, columns, rows)
+      def data_types_map
+        DATA_TYPES_MAP
+      end
+
+      def define_query_definitions
+        @definitions = new_definitions
+      end
+
+      def exec_query_result(query, args)
+        reset_id_when_required(query)
+        connection.exec_query(query, args)
       end
 
       def query(query_name, body)
@@ -26,8 +49,10 @@ module Db2Query
             body.call(args << { query_name: query_name })
           end
         elsif body.is_a?(String) && body.strip.length > 0
+          query = definitions.lookup(query_name)
+          query.define_sql(body.strip)
           singleton_class.define_method(query_name) do |*args|
-            exec_query_result(query_name, body.strip, args)
+            exec_query_result(query, args)
           end
         else
           raise Db2Query::QueryMethodError.new
@@ -36,10 +61,8 @@ module Db2Query
       alias define query
 
       def fetch(sql, args = [])
-        query_name = query_name_from_lambda_args(args)
-        sql, binds, args = query_binds(query_name, sql, args)
-        columns, rows = connection.exec_select_query(sql, binds, args)
-        query_result(query_name, columns, rows)
+        query = query_from_sql_args(sql, args)
+        connection.exec_select_query(query, args)
       end
 
       def fetch_list(sql, args)
@@ -48,23 +71,18 @@ module Db2Query
       end
 
       private
-        def formatters
-          @formatters ||= Hash.new
+        def new_definitions
+          definition_class = "Definitions::#{name}Definitions"
+          Object.const_get(definition_class).new(data_types_map)
+        rescue Exception => e
+          raise Db2Query::Error, e.message
         end
 
-        def reset_id_when_required(query_name, sql)
-          column_id = definitions.lookup(query_name).columns.fetch(:id, nil)
-          if insert_sql?(sql) && !column_id.nil?
-            table_name = table_name_from_insert_sql(sql)
+        def reset_id_when_required(query)
+          if insert_sql?(query.sql) && !query.column_id.nil?
+            table_name = table_name_from_insert_sql(query.sql)
             connection.reset_id_sequence!(table_name)
           end
-        end
-
-        def sql_statement_from_query(method_name, args)
-          sql_query_name = sql_query_symbol(method_name)
-          sql_statement = allocate.method(sql_query_name).call
-          args = sorted_args(sql_statement, args)
-          [sql_statement, args]
         end
 
         def query_name_from_lambda_args(args)
@@ -74,67 +92,34 @@ module Db2Query
           raise Db2Query::ImplementationError.new
         end
 
+        def query_from_sql_args(sql, args)
+          query_name = query_name_from_lambda_args(args)
+          definitions.lookup(query_name).tap do |query|
+            query.define_sql(sql)
+          end
+        end
+
+        def sql_statement_from_query(method_name)
+          sql_query_name = sql_query_symbol(method_name)
+          allocate.method(sql_query_name).call
+        end
+
+        def define_sql_query(method_name)
+          sql_statement = sql_statement_from_query(method_name)
+          define(method_name, sql_statement)
+        end
+
         def method_missing(method_name, *args, &block)
-          if sql_method?(method_name)
-            sql_statement, args = sql_statement_from_query(method_name, args)
-            define(method_name, sql_statement)
+          if sql_query_method?(method_name)
+            define_sql_query(method_name)
             method(method_name).call(*args)
           elsif method_name == :exec_query
             sql, args = [args.shift, args.first]
-            query_name = query_name_from_lambda_args(args)
-            exec_query_result(query_name, sql, args)
+            query = query_from_sql_args(sql, args)
+            exec_query_result(query, args)
           else
             super
           end
-        end
-
-        def sorted_args(sql, args)
-          if args.first.is_a?(Hash)
-            args[0] = parameters(sql).each_with_object({}) do |key, obj|
-              obj[key.to_sym] = args.first[key.to_sym]
-            end
-          end
-          args
-        end
-
-        class Bind < Struct.new(:name, :value)
-        end
-
-        def serialized_bind(type, column, value)
-          value = type.serialize(value)
-          [Bind.new(column, value), value]
-        end
-
-        def query_binds(query_name, sql, args)
-          sql, keys, length = bind_variables(sql)
-          args = args.first.is_a?(Hash) ? args.first : args
-          given, expected = [args.length, length]
-
-          raise Db2Query::ArgumentError.new(given, expected) unless given == expected
-
-          definition = definitions.lookup(query_name)
-
-          binds = keys.map.with_index do |key, index|
-            arg = args.is_a?(Hash) ? args[key] : args[index]
-            data_type = definition.data_type(key)
-            serialized_bind(data_type, key.to_s, arg)
-          end
-
-          args = binds.map { |bind| bind.first.value }
-          [sql, binds, args]
-        end
-
-        def validate_columns(columns, definition)
-          res_cols, def_cols = [columns.length, definition.length]
-          if res_cols != def_cols
-            raise Db2Query::ColumnError.new(def_cols, res_cols)
-          end
-        end
-
-        def query_result(query_name, columns, rows)
-          definition = definitions.lookup(query_name)
-          validate_columns(columns, definition)
-          Db2Query::Result.new(columns, rows, definition)
         end
     end
   end

@@ -50,6 +50,6 @@ def prepare_test_database
 
   # Populate users
   (10000...10010).each do
-    @connection.exec_query(INSERT_USER_SQL, [], [Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email])
+    @connection.execute(INSERT_USER_SQL, [Faker::Name.first_name, Faker::Name.last_name, Faker::Internet.email])
   end
 end

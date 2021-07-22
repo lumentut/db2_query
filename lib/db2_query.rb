@@ -28,8 +28,8 @@ module Db2Query
     autoload :Text, "db2_query/type/text"
   end
 
+  autoload :Query, "db2_query/query"
   autoload :Definitions, "db2_query/definitions"
-  autoload :QueryDefinitions, "db2_query/query_definitions"
   autoload :ConnectionHandler, "db2_query/connection_handler"
   autoload :Connection, "db2_query/connection"
   autoload :Result, "db2_query/result"

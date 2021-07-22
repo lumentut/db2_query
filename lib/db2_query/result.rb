@@ -19,13 +19,13 @@ module Db2Query
     end
 
     def length
-      columns.length
+      records.length
     end
 
     def to_h
       rows.map do |row|
         index, hash = [0, {}]
-        while index < length
+        while index < columns.length
           hash[columns[index].to_sym] = row[index]
           index += 1
         end
@@ -41,7 +41,7 @@ module Db2Query
 
     class Record
       def initialize(row, columns, definition)
-        index, hash = [0, {}]
+        index = 0
         while index < columns.length
           col, val = [columns[index], row[index]]
           add_attribute(col, val, definition)

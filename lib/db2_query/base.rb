@@ -4,13 +4,12 @@ module Db2Query
   class Base
     include Config
     include ConnectionHandler
-    include QueryDefinitions
     include Helper
     include Quoting
     include Core
 
     def self.inherited(subclass)
-      subclass.definitions.initialize_types
+      subclass.define_query_definitions
     end
   end
 end

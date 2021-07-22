@@ -31,35 +31,15 @@ module Db2Query
       end
     end
 
-    def exec_select_query(sql, binds = [], args = [])
-      raise_fetch_error if iud_sql?(sql)
-      log(sql, "SQL", binds, args) do
-        run_query(sql, args)
-      end
+    def exec_select_query(query, args = [])
+      raise_fetch_error if iud_sql?(query.sql)
+      args = query.validate_args(args)
+      log(query, args) { run_query(query, args) }
     end
 
-    def exec_query(sql, binds = [], args = [])
-      log(sql, "SQL", binds, args) do
-        run_query(sql, args)
-      end
-    end
-
-    def run_query(sql, args = [])
-      pool do |odbc_conn|
-        begin
-          sql = db2_spec_sql(sql)
-          if args.empty?
-            stmt = odbc_conn.run(sql)
-          else
-            stmt = odbc_conn.run(sql, *args)
-          end
-          columns = stmt.columns.values.map { |col| col.name.downcase }
-          rows = stmt.to_a
-        ensure
-          stmt.drop unless stmt.nil?
-        end
-        [columns, rows]
-      end
+    def exec_query(query, args = [])
+      args = query.validate_args(args)
+      log(query, args) { run_query(query, args) }
     end
 
     def reset_id_sequence!(table_name)
@@ -76,6 +56,27 @@ module Db2Query
     end
 
     private
+      def run_query(query, args = [])
+        pool do |odbc_conn|
+          begin
+            sql = db2_spec_sql(query.sql)
+            if args.empty?
+              stmt = odbc_conn.run(sql)
+            else
+              stmt = odbc_conn.run(sql, *args)
+            end
+            columns = stmt.columns.values.map { |col| col.name.downcase }
+            rows = stmt.to_a
+          ensure
+            stmt.drop unless stmt.nil?
+          end
+
+          query.validate_result_columns(columns)
+
+          Db2Query::Result.new(columns, rows, query)
+        end
+      end
+
       def raise_fetch_error
         raise Db2Query::Error, "`fetch`, `fetch_list` and `fetch_extention` methods applied for SQL `select` statement only."
       end
