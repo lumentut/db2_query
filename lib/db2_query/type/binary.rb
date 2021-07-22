@@ -2,7 +2,7 @@
 
 module Db2Query
   module Type
-    class Binary
+    class Binary < Value
       def name
         :binary
       end
