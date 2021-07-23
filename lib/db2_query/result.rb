@@ -8,7 +8,7 @@ module Db2Query
       @definition = definition
       super(columns, rows, {})
     end
-    
+  
     alias query definition
 
     def record
