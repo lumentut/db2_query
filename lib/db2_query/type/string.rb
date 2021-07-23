@@ -2,21 +2,30 @@
 
 module Db2Query
   module Type
-    class String < ActiveModel::Type::String
-      private
-        def cast_value(value)
-          case value
-          when ::String then
-            if value == "null"
-              nil
-            else
-              ::String.new(value)
-            end
-          when true then "t"
-          when false then "f"
-          else value.to_s
+    class String < Value
+      DEFAULT = { limit: 255, trim: false }
+
+      def initialize(options = DEFAULT)
+        super(options)
+      end
+
+      def type
+        :string
+      end
+
+      def deserialize(value)
+        value = \
+        case value
+        when ::String then
+          if value == "null"
+            nil
+          else
+            ::String.new(value)
           end
+        else value.to_s
         end
+        value.strip! if options[:trim]
+      end
     end
   end
 end

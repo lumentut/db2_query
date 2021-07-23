@@ -68,7 +68,7 @@ class QueryTest < ActiveSupport::TestCase
     first_name = "John"
     email = "john@doe.com"
 
-    sorted_args = query.serialized_args({ email: email , first_name: first_name})
+    sorted_args = query.serialized_args({ email: email, first_name: first_name })
     assert_equal [first_name, email], sorted_args
   end
 

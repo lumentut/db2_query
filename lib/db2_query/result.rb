@@ -8,6 +8,8 @@ module Db2Query
       @definition = definition
       super(columns, rows, {})
     end
+    
+    alias query definition
 
     def record
       return nil if rows.empty?
@@ -26,7 +28,8 @@ module Db2Query
       rows.map do |row|
         index, hash = [0, {}]
         while index < columns.length
-          hash[columns[index].to_sym] = row[index]
+          attr_name = columns[index].to_sym
+          hash[attr_name] = query.data_type(attr_name).deserialize(row[index])
           index += 1
         end
         hash

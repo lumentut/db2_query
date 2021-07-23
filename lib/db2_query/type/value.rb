@@ -2,7 +2,13 @@
 
 module Db2Query
   module Type
-    class Value
+    class Value < ActiveModel::Type::Value
+      attr_reader :options
+
+      def initialize(options = {})
+        @options = options
+      end
+
       def type_name
         :value
       end
@@ -13,6 +19,10 @@ module Db2Query
 
       def deserialize(value)
         value
+      end
+
+      def quote_string(value)
+        value.gsub("\\", '\&\&').gsub("'", "''")
       end
     end
   end

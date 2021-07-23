@@ -2,41 +2,40 @@
 
 module Db2Query
   module Type
-    class Boolean < ActiveModel::Type::Value
-      FALSE_VALUES = [
-        false, 0,
-        "0", :"0",
-        "f", :f,
-        "F", :F,
-        "false", :false,
-        "FALSE", :FALSE,
-        "off", :off,
-        "OFF", :OFF,
-      ].to_set.freeze
+    class Boolean < Value
+      TRUE_VALUES = [
+        true, 1, "1", "t", "T",
+        "true", "TRUE", "on", "ON",
+        :"1", :t, :T, :true, :TRUE, :on, :ON
+      ].freeze
 
-      def type # :nodoc:
+      DEFAULT = { true: true, false: false }
+
+      def initialize(options = DEFAULT)
+        super(options)
+      end
+
+      def name
         :boolean
       end
 
-      def serialize(value) # :nodoc:
-        cast(value)
-      end
-
-      def cast(value)
-        cast_value(value)
-      end
-
-      private
-        def cast_value(value)
-          case value
-          when *["-1", -1, ""]
-            nil
-          when nil
-            "-1"
-          else
-            !FALSE_VALUES.include?(value)
-          end
+      def serialize(value)
+        case value
+        when *TRUE_VALUES
+          1
+        else
+          0
         end
+      end
+
+      def deserialize(value)
+        case value
+        when 1
+          options[:true]
+        else
+          options[:false]
+        end
+      end
     end
   end
 end

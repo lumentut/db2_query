@@ -216,9 +216,8 @@ class Db2QueryTest < ActiveSupport::TestCase
     records = nil
     assert_nothing_raised do
       records = UserQuery.by_names user_names
+      assert_equal records.length, user_names.length
     end
-
-    assert_equal records.length, user_names.length
   end
 
   test "wrong extention sql and list input" do

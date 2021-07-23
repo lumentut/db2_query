@@ -2,13 +2,13 @@
 
 module Db2Query
   module Type
-    class Decimal < Value
+    class Integer < Value
       def type
-        :decimal
+        :integer
       end
 
       def deserialize(value)
-        value.to_f
+        value.to_i
       end
     end
   end
