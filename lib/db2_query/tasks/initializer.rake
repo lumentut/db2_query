@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "db2_query/tasks/cli/initializer_cli"
+require "db2_query/tasks"
 
 namespace :db2query do
   desc "Create Initializer file"
   task :initializer do
-    InitializerCLI.generate_file
+    Db2Query::InitializerTask.generate_file
   end
 end
