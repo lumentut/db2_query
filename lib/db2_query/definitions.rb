@@ -60,7 +60,7 @@ module Db2Query
         raise Db2Query::Error, "Not supported `#{data_type}` data type"
       end
 
-      def query_name_from_lambda_args(args)
+      def fetch_query_name(args)
         placeholder = args.pop
         placeholder.fetch(:query_name)
       rescue
@@ -68,10 +68,10 @@ module Db2Query
       end
 
       def query_definitions(args)
-        if args.first.is_a?(Array)
-          [query_name_from_lambda_args(args.first), args.last]
-        else
-          args
+        case args.first
+        when Array
+          [fetch_query_name(args.first), args.last]
+        else args
         end
       end
   end
