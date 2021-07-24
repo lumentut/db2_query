@@ -14,7 +14,7 @@ module Db2Query
       end
 
       def deserialize(value)
-        value = \
+        value.strip! if options[:trim]
         case value
         when ::String then
           if value == "null"
@@ -24,7 +24,6 @@ module Db2Query
           end
         else value.to_s
         end
-        value.strip! if options[:trim]
       end
     end
   end

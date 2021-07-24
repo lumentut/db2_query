@@ -4,6 +4,8 @@ module Db2Query
   class Result < ActiveRecord::Result
     attr_reader :definition
 
+    delegate :length, to: :rows
+
     def initialize(columns, rows, definition)
       @definition = definition
       super(columns, rows, {})
