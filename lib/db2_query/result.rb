@@ -22,10 +22,6 @@ module Db2Query
       @records ||= rows.map { |row| new_record(row) }
     end
 
-    def length
-      records.length
-    end
-
     def to_h
       rows.map do |row|
         index, hash = [0, {}]
