@@ -9,7 +9,7 @@ module Db2Query
     module ClassMethods
       attr_reader :definitions
 
-      delegate :query, :query_rows, :query_value, :query_values, :execute, to: :connection
+      delegate :query_rows, :query_value, :query_values, :execute, to: :connection
 
       def initiation
         yield(self) if block_given?
@@ -24,7 +24,7 @@ module Db2Query
         connection.exec_query(query, args)
       end
 
-      def query(query_name, body)
+      def query(query_name, body = nil)
         if body.respond_to?(:call)
           singleton_class.define_method(query_name) do |*args|
             body.call(args << { query_name: query_name })
@@ -34,6 +34,9 @@ module Db2Query
           singleton_class.define_method(query_name) do |*args|
             exec_query_result(query, args)
           end
+        elsif body.nil? && query_name.is_a?(String)
+          sql = query_name.strip
+          connection.query(sql)
         else
           raise Db2Query::QueryMethodError.new
         end
