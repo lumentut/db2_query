@@ -30,6 +30,13 @@ module Db2Query
       raise Db2Query::QueryDefinitionError.new(name, query_name)
     end
 
+    def lookup_query(*args)
+      query_name, sql = query_definitions(args)
+      lookup(query_name).tap do |query|
+        query.define_sql(sql)
+      end
+    end
+
     private
       def initialize_types
         queries.each do |query_name, definition|
@@ -39,12 +46,33 @@ module Db2Query
         end
       end
 
+      def new_data_type(klass, options)
+        options.nil? ? klass.new : klass.new(**options)
+      rescue Exception => e
+        raise Db2Query::Error, e.message
+      end
+
       def data_type_instance(column_definition)
         data_type, options = column_definition
         klass = @types_map.fetch(data_type)
-        options.nil? ? klass.new : klass.new(**options)
+        new_data_type(klass, options)
       rescue
         raise Db2Query::Error, "Not supported `#{data_type}` data type"
+      end
+
+      def query_name_from_lambda_args(args)
+        placeholder = args.pop
+        placeholder.fetch(:query_name)
+      rescue
+        raise Db2Query::ImplementationError.new
+      end
+
+      def query_definitions(args)
+        if args.first.is_a?(Array)
+          [query_name_from_lambda_args(args.first), args.last]
+        else
+          args
+        end
       end
   end
 end

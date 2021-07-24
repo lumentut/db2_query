@@ -37,7 +37,7 @@ class Db2QueryTest < ActiveSupport::TestCase
     type_definitions = query_definition.types
     assert_equal query_definition.query_name, query_name
     assert_equal type_definitions.length, columns_definition.length
-    assert_equal ActiveModel::Type::Integer, type_definitions.values.first.class
+    assert_equal Db2Query::Type::Integer, type_definitions.values.first.class
     assert_equal true, columns_definition.values.first.is_a?(Array)
   end
 
@@ -213,11 +213,12 @@ class Db2QueryTest < ActiveSupport::TestCase
     users = UserQuery.all.records
     user_names = users.map { |record| record.first_name }
 
-    records = nil
     assert_nothing_raised do
-      records = UserQuery.by_names user_names
-      assert_equal records.length, user_names.length
+      UserQuery.by_names user_names
     end
+
+    user_by_names = UserQuery.by_names user_names
+    assert_equal user_by_names.length, user_names.length
   end
 
   test "wrong extention sql and list input" do

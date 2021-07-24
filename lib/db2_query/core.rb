@@ -30,8 +30,7 @@ module Db2Query
             body.call(args << { query_name: query_name })
           end
         elsif body.is_a?(String) && body.strip.length > 0
-          query = definitions.lookup(query_name)
-          query.define_sql(body.strip)
+          query = definitions.lookup_query(query_name, body.strip)
           singleton_class.define_method(query_name) do |*args|
             exec_query_result(query, args)
           end
@@ -42,7 +41,7 @@ module Db2Query
       alias define query
 
       def fetch(sql, args = [])
-        query = query_from_sql_args(sql, args)
+        query = definitions.lookup_query(args, sql)
         connection.exec_select_query(query, args)
       end
 
@@ -66,20 +65,6 @@ module Db2Query
           end
         end
 
-        def query_name_from_lambda_args(args)
-          placeholder = args.pop
-          placeholder.fetch(:query_name)
-        rescue
-          raise Db2Query::ImplementationError.new
-        end
-
-        def query_from_sql_args(sql, args)
-          query_name = query_name_from_lambda_args(args)
-          definitions.lookup(query_name).tap do |query|
-            query.define_sql(sql)
-          end
-        end
-
         def sql_statement_from_query(method_name)
           sql_query_name = sql_query_symbol(method_name)
           allocate.method(sql_query_name).call
@@ -96,7 +81,7 @@ module Db2Query
             method(method_name).call(*args)
           elsif method_name == :exec_query
             sql, args = [args.shift, args.first]
-            query = query_from_sql_args(sql, args)
+            query = definitions.lookup_query(args, sql)
             exec_query_result(query, args)
           else
             super

@@ -27,6 +27,7 @@ module Db2Query
     autoload :Decimal, "db2_query/type/decimal"
     autoload :String, "db2_query/type/string"
     autoload :Text, "db2_query/type/text"
+    autoload :Integer, "db2_query/type/integer"
   end
 
   autoload :Query, "db2_query/query"
