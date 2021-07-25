@@ -56,7 +56,7 @@ module Db2Query
       private
         def new_definitions
           definition_class = "Definitions::#{name}Definitions"
-          Object.const_get(definition_class).new(data_types_map)
+          Object.const_get(definition_class).new(field_types_map)
         rescue Exception => e
           raise Db2Query::Error, e.message
         end

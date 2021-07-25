@@ -6,7 +6,7 @@ module Db2Query
     include ConnectionHandler
     include Helper
     include Quoting
-    include DataType
+    include FieldType
     include Core
 
     def self.inherited(subclass)

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Db2Query
-  module DataType
-    DATA_TYPES_MAP = {
+  module FieldType
+    FIELD_TYPES_MAP = {
       boolean:  Db2Query::Type::Boolean,
       varbinary: Db2Query::Type::Binary,
       binary: Db2Query::Type::Binary,
@@ -21,8 +21,8 @@ module Db2Query
     end
 
     module ClassMethods
-      mattr_accessor :data_types_map
-      @@data_types_map = DATA_TYPES_MAP
+      mattr_accessor :field_types_map
+      @@field_types_map = FIELD_TYPES_MAP
     end
   end
 end
