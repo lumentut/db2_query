@@ -25,6 +25,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "rails"
 
-  spec.add_dependency "connection_pool"
+  spec.add_dependency "connection_pool", "2.2.5"
   spec.add_dependency "ruby-odbc"
 end

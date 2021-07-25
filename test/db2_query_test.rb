@@ -218,6 +218,8 @@ class Db2QueryTest < ActiveSupport::TestCase
     end
 
     user_by_names = UserQuery.by_names user_names
+
+    assert_equal true, user_by_names.is_a?(Db2Query::Result)
     assert_equal user_by_names.length, user_names.length
   end
 
