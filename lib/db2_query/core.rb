@@ -68,13 +68,9 @@ module Db2Query
           end
         end
 
-        def sql_statement_from_query(method_name)
-          sql_query_name = sql_query_symbol(method_name)
-          allocate.method(sql_query_name).call
-        end
-
         def define_sql_query(method_name)
-          sql_statement = sql_statement_from_query(method_name)
+          sql_query_name = sql_query_symbol(method_name)
+          sql_statement = allocate.method(sql_query_name).call
           define(method_name, sql_statement)
         end
 
