@@ -2,7 +2,7 @@
 
 module Db2Query
   class Connection
-    class ConnectionPool < ::ConnectionPool
+    class Pool < ConnectionPool
       def initialize(config, &block)
         @config = config
         super(config, &block)
@@ -45,7 +45,7 @@ module Db2Query
     def create_connection_pool
       mutex.synchronize do
         return @connection_pool if @connection_pool
-        @connection_pool = ConnectionPool.new(pool_config) { DbClient.new(config) }
+        @connection_pool = Pool.new(pool_config) { DbClient.new(config) }
       end
     end
   end
