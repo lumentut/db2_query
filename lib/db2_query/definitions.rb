@@ -70,7 +70,8 @@ module Db2Query
       def query_definitions(args)
         case args.first
         when Array
-          [fetch_query_name(args.first), args.last]
+          query_name = fetch_query_name(args.first)
+          [query_name, args.last]
         else args
         end
       end

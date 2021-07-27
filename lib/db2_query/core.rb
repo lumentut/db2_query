@@ -45,7 +45,7 @@ module Db2Query
 
       def fetch(sql, args = [])
         query = definitions.lookup_query(args, sql)
-        connection.exec_select_query(query, args)
+        connection.exec_query(query, args)
       end
 
       def fetch_list(sql, args)

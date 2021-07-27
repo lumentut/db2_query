@@ -37,9 +37,8 @@ module Db2Query
     end
 
     def serialized_args(args)
-      sorted_args = sort_args(args)
       keys.map.with_index do |key, index|
-        arg = sorted_args.is_a?(Hash) ? sorted_args[key] : sorted_args[index]
+        arg = args.is_a?(Hash) ? args[key] : args[index]
         data_type(key).serialize(arg)
       end
     end
@@ -52,14 +51,6 @@ module Db2Query
       "#{key}".split(".").last.downcase
     end
 
-    def validate_args(args)
-      args = args.first.is_a?(Hash) ? args.first : args
-      serialized_args(args).tap do |serialized_args|
-        given, expected = [args.length, serialized_args.length]
-        raise Db2Query::ArgumentError.new(given, expected) unless given == expected
-      end
-    end
-
     def validate_result_columns(result_columns)
       res_cols, def_cols = [result_columns.length, length]
       if res_cols != def_cols
@@ -67,18 +58,37 @@ module Db2Query
       end
     end
 
+    def delete_sql?
+      sql.match?(/delete/i)
+    end
+
+    def iud_sql?
+      sql.match?(/insert into|update|delete/i)
+    end
+
+    def db2_spec_sql
+      iud_sql? ? iud_spec_sql : sql
+    end
+
+    def run_query_arguments(args)
+      [db2_spec_sql, validate_args(args)]
+    end
+
     private
       def new_keys(raw_sql)
         raw_sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
       end
 
-      def sort_args(args)
-        if args.first.is_a?(Hash)
-          args[0] = parameters(sql).each_with_object({}) do |key, obj|
-            obj[key.to_sym] = args.first[key.to_sym]
-          end
+      def iud_spec_sql
+        "SELECT * FROM #{delete_sql? ? "OLD" : "NEW"} TABLE (#{sql})"
+      end
+
+      def validate_args(args)
+        args = args.first.is_a?(Hash) ? args.first : args
+        serialized_args(args).tap do |serialized_args|
+          given, expected = [args.length, serialized_args.length]
+          raise Db2Query::ArgumentError.new(given, expected) unless given == expected
         end
-        args
       end
   end
 end

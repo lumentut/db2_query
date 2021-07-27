@@ -72,28 +72,50 @@ class QueryTest < ActiveSupport::TestCase
     assert_equal [first_name, email], sorted_args
   end
 
-  def fetch(sql, args)
-    assert_equal "FETCH SQL", sql
+  SQL = -> extention {
+    UserQuery.sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
+  }
 
-    placeholder = args.pop
-    query_name = placeholder.fetch(:query_name)
+  def fetch_list(sql, args)
+    query_name = args.last.fetch(:query_name)
 
-    assert_equal :by_names, query_name
+    assert_equal :by_first_names, query_name
 
     users = UserQuery.all.to_h
     user_names = users.map { |user| user[:first_name] }
 
     assert_equal user_names, args.first
+
+    UserQuery.fetch_list(sql, args)
+  end
+
+  test "fetch and fetch list query name" do
+    users = UserQuery.all.to_h
+    user_names = users.map { |user| user[:first_name] }
+
+    UserQuery.define_query_definitions
+
+    UserQuery.query :by_first_names, -> args {
+      fetch_list(
+        SQL.("first_name IN (@list)"), args
+      )
+    }
+
+    users_by_first_names = UserQuery.by_first_names user_names
+    assert_equal user_names.length, users_by_first_names.length
   end
 
   test "fetch query" do
     users = UserQuery.all.to_h
-    user_names = users.map { |user| user[:first_name] }
+    user_names = users.map { |user| user[:last_name] }
 
-    UserQuery.query :by_names, -> args {
-      fetch("FETCH SQL", args)
+    UserQuery.define_query_definitions
+
+    UserQuery.query :by_last_name, -> args {
+      UserQuery.fetch("SELECT * FROM USERS WHERE $last_name = ?", args)
     }
 
-    UserQuery.by_names user_names
+    user = UserQuery.by_last_name user_names.first
+    assert_equal user.last_name, user_names.first
   end
 end

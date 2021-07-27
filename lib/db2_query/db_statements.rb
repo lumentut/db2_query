@@ -31,34 +31,18 @@ module Db2Query
       end
     end
 
-    def run_query(args = [], &block)
-      pool do |conn|
-        stmt = conn.run(*args)
-        columns = stmt.columns.values.map { |col| col.name.downcase }
-        rows = stmt.to_a
-        yield(columns, rows)
-      ensure
-        stmt.drop unless stmt.nil?
-      end
-    end
-
     def exec_query(query, args = [])
-      args = query.validate_args(args)
-
+      sql, args = query.run_query_arguments(args)
       log(query, args) do
-        sql = db2_spec_sql(query.sql)
-        args = args.empty? ? [sql] : [sql, *args]
-
-        run_query(args) do |columns, rows|
-          query.validate_result_columns(columns)
+        pool do |odbc_conn|
+          stmt = odbc_conn.run(sql, *args)
+          columns = stmt.columns.values.map { |col| col.name.downcase }
+          rows = stmt.to_a
           Db2Query::Result.new(columns, rows, query)
+        ensure
+          stmt.drop unless stmt.nil?
         end
       end
-    end
-
-    def exec_select_query(query, args = [])
-      raise_fetch_error if iud_sql?(query.sql)
-      exec_query(query, args)
     end
 
     def reset_id_sequence!(table_name)
@@ -75,28 +59,8 @@ module Db2Query
     end
 
     private
-      def raise_fetch_error
-        raise Db2Query::Error, "`fetch`, `fetch_list` and `fetch_extention` methods applied for SQL `select` statement only."
-      end
-
       def max_id(table_name)
         query_value("SELECT COALESCE(MAX (ID),0) FROM #{table_name}")
-      end
-
-      def iud_sql?(sql)
-        sql.match?(/insert into|update|delete/i)
-      end
-
-      def iud_ref_table(sql)
-        sql.match?(/delete/i) ? "OLD TABLE" : "NEW TABLE"
-      end
-
-      def db2_spec_sql(sql)
-        if iud_sql?(sql)
-          "SELECT * FROM #{iud_ref_table(sql)} (#{sql})"
-        else
-          sql
-        end
       end
   end
 end

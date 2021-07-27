@@ -32,7 +32,6 @@ module Db2Query
 
   autoload :Query, "db2_query/query"
   autoload :Definitions, "db2_query/definitions"
-  autoload :ConnectionHandler, "db2_query/connection_handler"
   autoload :Connection, "db2_query/connection"
   autoload :Result, "db2_query/result"
   autoload :Core, "db2_query/core"

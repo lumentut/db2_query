@@ -17,6 +17,8 @@ module Definitions
         :by_details,
         :by_email,
         :by_first_name,
+        :by_first_names,
+        :by_last_name,
         :wrong_list_pointer,
         :wrong_extention_pointer,
         :insert_record,

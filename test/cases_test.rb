@@ -4,29 +4,9 @@ require "test_helper"
 
 prepare_test_database
 
-class Db2QueryTest < ActiveSupport::TestCase
+class CasesTest < ActiveSupport::TestCase
   test "it has a version number" do
     assert Db2Query::VERSION
-  end
-
-  test "load database config exception" do
-    exception = assert_raise(Exception) { Db2Query::Base.load_database_configurations "fake" }
-    assert_equal("No such file or directory @ rb_sysopen - fake", exception.message)
-
-    assert_nothing_raised do
-      Db2Query::Base.load_database_configurations
-    end
-  end
-
-  test "load database configurations" do
-    base_config_id = Db2Query::Base.configurations.object_id
-    child_config_id = UserQuery.configurations.object_id
-    assert_equal base_config_id, child_config_id
-
-    config = Db2Query::Base.configurations
-    assert_equal Hash, config.class
-    assert_equal 4, config.size
-    assert_equal [:dsn, :idle, :pool, :timeout], config.keys.sort
   end
 
   test "query definitions" do
@@ -38,7 +18,7 @@ class Db2QueryTest < ActiveSupport::TestCase
     assert_equal query_definition.query_name, query_name
     assert_equal type_definitions.length, columns_definition.length
     assert_equal Db2Query::Type::Integer, type_definitions.values.first.class
-    assert_equal true, columns_definition.values.first.is_a?(Array)
+    assert columns_definition.values.first.is_a?(Array)
   end
 
   test "query definitions exception" do
@@ -47,65 +27,6 @@ class Db2QueryTest < ActiveSupport::TestCase
     exception = assert_raise(Exception) { BlankDefinitionsQuery.definitions }
     definition_class = "Definitions::BlankDefinitionsQueryDefinitions"
     assert_equal "Please describe query definitions at #{definition_class}", exception.message
-  end
-
-  test "thread safe connection" do
-    threads = []
-    pool_id = Db2Query::Base.connection.object_id
-    50.times {
-      threads << Thread.new {
-        assert_equal pool_id, UserQuery.connection.object_id
-      }
-    }
-    threads.each(&:join)
-  end
-
-  test "connection pool" do
-    thread_conn = nil
-    connection = Db2Query::Base.connection
-
-    Thread.new {
-      connection.pool do |conn|
-        thread_conn = conn
-        expected_state = { size: 5, available: 4 }
-        assert_equal expected_state, connection.current_state
-      end
-    }.join
-
-    Thread.new {
-      connection.pool do |conn|
-        assert_equal thread_conn, conn
-      end
-    }.join
-  end
-
-  test "db client expiration" do
-    config = { dsn: "LIBTEST", idle: 0.04 }
-    db_client = Db2Query::DbClient.new(config)
-    client_1 = db_client.client
-    assert_equal false, db_client.expire?
-    sleep 3
-    assert_equal true, db_client.expire?
-    client_2 = db_client.client
-    assert_not_equal client_1.object_id, client_2.object_id
-    sleep 1
-    assert_equal client_2, db_client.client
-    client_3 = db_client.client
-    assert_equal client_2.object_id, client_3.object_id
-    client_3.disconnect
-    assert_not_equal client_3.object_id, db_client.client
-  end
-
-  test "db client dsn exception" do
-    config = { dsn: "FAKE", idle: 0.04 }
-    exception = assert_raise(Exception) { Db2Query::DbClient.new(config) }
-    assert_includes exception.message, "Data source name not found"
-  end
-
-  test "connection reload" do
-    assert_nothing_raised do
-      Db2Query::Base.connection.reload
-    end
   end
 
   test "given args bigger than expected" do
@@ -118,7 +39,7 @@ class Db2QueryTest < ActiveSupport::TestCase
   end
 
   test "user data available" do
-    assert_equal true, !UserQuery.all.records.empty?
+    assert !UserQuery.all.records.empty?
   end
 
   test "sql select statement" do
@@ -219,7 +140,7 @@ class Db2QueryTest < ActiveSupport::TestCase
 
     user_by_names = UserQuery.by_names user_names
 
-    assert_equal true, user_by_names.is_a?(Db2Query::Result)
+    assert user_by_names.is_a?(Db2Query::Result)
     assert_equal user_by_names.length, user_names.length
   end
 

@@ -8,23 +8,19 @@ module Db2Query
 
     module ClassMethods
       def sql_with_list(sql, list)
-        validate_sql(sql)
         if sql.scan(/\@list+/).length == 0
           raise Db2Query::MissingListError, "Missing @list pointer at SQL"
         elsif !list.is_a?(Array)
           raise Db2Query::ListTypeError, "The arguments should be an array of list"
-        else
-          sql.gsub("@list", "'#{list.join("', '")}'")
         end
+        sql.gsub("@list", "'#{list.join("', '")}'")
       end
 
       def sql_with_extention(sql, extention)
-        validate_sql(sql)
         if sql.scan(/\@extention+/).length == 0
           raise Db2Query::ExtentionError, "Missing @extention pointer at SQL"
-        else
-          sql.gsub("@extention", extention.strip)
         end
+        sql.gsub("@extention", extention.strip)
       end
 
       private
@@ -55,6 +51,10 @@ module Db2Query
 
         def validate_sql(sql)
           raise Db2Query::Error, "SQL have to be in string format" unless sql.is_a?(String)
+        end
+
+        def fetch_error_message
+          "`fetch`, `fetch_list` and `fetch_extention` methods applied for SQL `select` statement only."
         end
     end
   end

@@ -4,18 +4,18 @@ module Db2Query
   class Result < ActiveRecord::Result
     attr_reader :definition
 
-    delegate :length, to: :rows
+    alias query definition
+
+    delegate :data_type, :validate_result_columns, to: :definition
 
     def initialize(columns, rows, definition)
       @definition = definition
+      validate_result_columns(columns)
       super(columns, rows, {})
     end
 
-    alias query definition
-
     def record
-      return nil if rows.empty?
-      @record ||= new_record(rows.first)
+      records.first
     end
 
     def records
@@ -27,7 +27,7 @@ module Db2Query
         index, hash = [0, {}]
         while index < columns.length
           attr_name = columns[index].to_sym
-          hash[attr_name] = query.data_type(attr_name).deserialize(row[index])
+          hash[attr_name] = data_type(attr_name).deserialize(row[index])
           index += 1
         end
         hash
@@ -41,18 +41,18 @@ module Db2Query
     end
 
     class Record
+      attr_reader :definition
+
+      delegate :data_type, to: :definition
+
       def initialize(row, columns, definition)
-        index = 0
-        while index < columns.length
-          col, val = [columns[index], row[index]]
-          add_attribute(col, val, definition)
-          index += 1
-        end
+        @definition = definition
+        add_attributes(columns, row)
       end
 
       def inspect
         inspection = if defined?(instance_variables) && instance_variables
-          instance_variables.map do |attribute|
+          instance_variables.reject { |var| var == :@definition }.map do |attribute|
             "#{attribute[1..-1]}: #{instance_variable_get(attribute)}"
           end.compact.join(", ")
         else
@@ -62,10 +62,14 @@ module Db2Query
       end
 
       private
-        def add_attribute(attr_name, value, definition)
-          class_eval { attr_accessor "#{attr_name}" }
-          data_type = definition.data_type(attr_name)
-          send("#{attr_name}=", data_type.deserialize(value))
+        def add_attributes(columns, row)
+          index = 0
+          while index < columns.length
+            column, value = [columns[index], row[index]]
+            class_eval { attr_accessor "#{column}" }
+            send("#{column}=", data_type(column).deserialize(value))
+            index += 1
+          end
         end
     end
 

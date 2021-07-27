@@ -9,7 +9,7 @@ module Db2Query
     def initialize(config)
       @dsn = config[:dsn]
       @idle_time_limit = config[:idle] || 5
-      @client = new_db_client
+      @client = new_client
       @last_active = Time.now
     end
 
@@ -31,7 +31,7 @@ module Db2Query
       @client = nil
     end
 
-    def new_db_client
+    def new_client
       ODBC.connect(dsn)
     rescue ::ODBC::Error => e
       raise Db2Query::ConnectionError.new(e.message)
@@ -40,7 +40,7 @@ module Db2Query
     def client
       return @client if connected_and_persist?
       disconnect!
-      @client = new_db_client
+      @client = new_client
       @last_active = Time.now
       @client
     end

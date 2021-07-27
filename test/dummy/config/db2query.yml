@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 development:
-  dsn: LIBTEST
+  dsn: iseries
   idle: 5
   pool: 5
   timeout: 5
