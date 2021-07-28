@@ -5,11 +5,9 @@ module Db2Query
     include Config
     include Helper
     include Quoting
+    include DbConnection
     include FieldType
     include Core
-
-    mattr_reader :connection
-    @@connection = nil
 
     def self.inherited(subclass)
       subclass.define_query_definitions
@@ -17,7 +15,7 @@ module Db2Query
 
     def self.establish_connection
       load_database_configurations
-      @@connection = Connection.new(config)
+      new_database_connection
     end
   end
 end

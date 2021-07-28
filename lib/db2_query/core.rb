@@ -45,6 +45,7 @@ module Db2Query
 
       def fetch(sql, args = [])
         query = definitions.lookup_query(args, sql)
+        query.validate_select_query
         connection.exec_query(query, args)
       end
 
@@ -62,9 +63,8 @@ module Db2Query
         end
 
         def reset_id_when_required(query)
-          if insert_sql?(query.sql) && !query.column_id.nil?
-            table_name = table_name_from_insert_sql(query.sql)
-            connection.reset_id_sequence!(table_name)
+          if query.insert_sql? && !query.column_id.nil?
+            connection.reset_id_sequence!(query.table_name)
           end
         end
 

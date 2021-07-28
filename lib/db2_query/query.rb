@@ -4,11 +4,12 @@ module Db2Query
   class Query
     attr_reader :columns, :keys, :query_name, :sql, :types
 
+    include SqlStatement
+
     def initialize(query_name)
       @columns = {}
-      @keys = nil
       @query_name = query_name
-      @sql = nil
+      @sql_statement = nil
       @types = {}
     end
 
@@ -58,29 +59,19 @@ module Db2Query
       end
     end
 
-    def delete_sql?
-      sql.match?(/delete/i)
-    end
-
-    def iud_sql?
-      sql.match?(/insert into|update|delete/i)
-    end
-
-    def db2_spec_sql
-      iud_sql? ? iud_spec_sql : sql
-    end
-
     def run_query_arguments(args)
       [db2_spec_sql, validate_args(args)]
+    end
+
+    def validate_select_query
+      if iud_sql?
+        raise Db2Query::Error, "Fetch queries are used for select statement query only."
+      end
     end
 
     private
       def new_keys(raw_sql)
         raw_sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
-      end
-
-      def iud_spec_sql
-        "SELECT * FROM #{delete_sql? ? "OLD" : "NEW"} TABLE (#{sql})"
       end
 
       def validate_args(args)

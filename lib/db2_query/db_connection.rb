@@ -1,6 +1,21 @@
 # frozen_string_literal: true
 
 module Db2Query
+  module DbConnection
+    def self.included(base)
+      base.send(:extend, ClassMethods)
+    end
+
+    module ClassMethods
+      mattr_reader :connection
+      @@connection = nil
+
+      def new_database_connection
+        @@connection = Connection.new(config)
+      end
+    end
+  end
+
   class Connection
     class Pool < ConnectionPool
       def initialize(config, &block)

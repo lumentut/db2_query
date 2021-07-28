@@ -22,6 +22,7 @@ module Definitions
         :wrong_list_pointer,
         :wrong_extention_pointer,
         :insert_record,
+        :insert_fetch,
         :update_record,
         :delete_record
       ]

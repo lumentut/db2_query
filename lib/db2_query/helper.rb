@@ -24,14 +24,6 @@ module Db2Query
       end
 
       private
-        def insert_sql?(sql)
-          sql.match?(/insert/i)
-        end
-
-        def table_name_from_insert_sql(sql)
-          sql.split("INTO ").last.split(" ").first
-        end
-
         def sql_query_methods
           self.instance_methods.grep(/_sql/)
         end
@@ -43,10 +35,6 @@ module Db2Query
         def sql_query_method?(method_name)
           sql_query_name = sql_query_symbol(method_name)
           sql_query_methods.include?(sql_query_name)
-        end
-
-        def placeholder_length(sql)
-          sql.scan(/\?/i).length
         end
 
         def validate_sql(sql)

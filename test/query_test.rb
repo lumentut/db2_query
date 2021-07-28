@@ -117,5 +117,14 @@ class QueryTest < ActiveSupport::TestCase
 
     user = UserQuery.by_last_name user_names.first
     assert_equal user.last_name, user_names.first
+
+    exception = assert_raise(Exception) {
+      UserQuery.query :insert_fetch, -> args {
+        UserQuery.fetch("INSERT INTO users ($first_name, $last_name, $email) VALUES (?, ?, ?)", args)
+      }
+      UserQuery.insert_fetch first_name: user.first_name, last_name: user.last_name, email: user.email
+    }
+
+    assert_equal "Fetch queries are used for select statement query only.", exception.message
   end
 end

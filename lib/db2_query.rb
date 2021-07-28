@@ -30,9 +30,10 @@ module Db2Query
     autoload :Integer, "db2_query/type/integer"
   end
 
+  autoload :SqlStatement, "db2_query/sql_statement"
   autoload :Query, "db2_query/query"
   autoload :Definitions, "db2_query/definitions"
-  autoload :Connection, "db2_query/connection"
+  autoload :DbConnection, "db2_query/db_connection"
   autoload :Result, "db2_query/result"
   autoload :Core, "db2_query/core"
   autoload :Base, "db2_query/base"

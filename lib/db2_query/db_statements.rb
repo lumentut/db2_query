@@ -3,8 +3,8 @@
 module Db2Query
   module DbStatements
     def query(sql)
-      pool do |odbc_conn|
-        stmt = odbc_conn.run(sql)
+      pool do |client|
+        stmt = client.run(sql)
         stmt.to_a
       ensure
         stmt.drop unless stmt.nil?
@@ -26,16 +26,16 @@ module Db2Query
     end
 
     def execute(sql, args = [])
-      pool do |odbc_conn|
-        odbc_conn.do(sql, *args)
+      pool do |client|
+        client.do(sql, *args)
       end
     end
 
     def exec_query(query, args = [])
       sql, args = query.run_query_arguments(args)
       log(query, args) do
-        pool do |odbc_conn|
-          stmt = odbc_conn.run(sql, *args)
+        pool do |client|
+          stmt = client.run(sql, *args)
           columns = stmt.columns.values.map { |col| col.name.downcase }
           rows = stmt.to_a
           Db2Query::Result.new(columns, rows, query)
