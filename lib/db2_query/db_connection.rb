@@ -35,10 +35,11 @@ module Db2Query
       end
     end
 
-    attr_reader :config, :connection_pool, :lock
+    attr_reader :config, :connection_pool, :instrumenter, :lock
 
     delegate :with, :current_state, :disconnect!, :reload, to: :connection_pool
     delegate :synchronize, to: :lock
+    delegate :instrument, to: :instrumenter
 
     include Logger
     include DbStatements

@@ -13,7 +13,7 @@ module Db2Query
     end
 
     def log(sql, binds = [], args = [], &block)
-      @instrumenter.instrument(
+      instrument(
         "sql.active_record",
         sql:               sql,
         name:              "SQL",
@@ -22,7 +22,7 @@ module Db2Query
         statement_name:    nil,
         connection_id:     object_id,
         connection:        self) do
-        @lock.synchronize do
+        synchronize do
           yield
         end
       rescue => e
