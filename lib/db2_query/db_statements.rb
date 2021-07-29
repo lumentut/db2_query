@@ -32,8 +32,8 @@ module Db2Query
     end
 
     def exec_query(query, args = [])
-      sql, args = query.run_query_arguments(args)
-      log(query, args) do
+      sql, binds, args = query.exec_query_arguments(args)
+      log(sql, binds, args) do
         pool do |client|
           stmt = client.run(sql, *args)
           columns = stmt.columns.values.map { |col| col.name.downcase }

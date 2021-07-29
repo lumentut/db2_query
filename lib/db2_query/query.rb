@@ -59,8 +59,8 @@ module Db2Query
       end
     end
 
-    def run_query_arguments(args)
-      [db2_spec_sql, validate_args(args)]
+    def exec_query_arguments(args)
+      [db2_spec_sql, binds(args), validate_args(args)]
     end
 
     def validate_select_query
@@ -69,9 +69,19 @@ module Db2Query
       end
     end
 
+    class Bind < Struct.new(:name, :value)
+    end
+
     private
       def new_keys(raw_sql)
         raw_sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
+      end
+
+      def binds(args)
+        keys.map.with_index do |key, index|
+          arg = args.is_a?(Hash) ? args[key] : args[index]
+          [Bind.new(column_from_key(key), arg), arg]
+        end
       end
 
       def validate_args(args)
