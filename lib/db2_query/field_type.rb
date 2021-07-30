@@ -2,18 +2,17 @@
 
 module Db2Query
   module FieldType
-    FIELD_TYPES_MAP = {
-      boolean:  Db2Query::Type::Boolean,
-      varbinary: Db2Query::Type::Binary,
+    DEFAULT_FIELD_TYPES = {
       binary: Db2Query::Type::Binary,
+      boolean:  Db2Query::Type::Boolean,
       string: Db2Query::Type::String,
-      varchar: Db2Query::Type::Text,
+      varchar: Db2Query::Type::String,
+      longvarchar: Db2Query::Type::String,
       decimal: Db2Query::Type::Decimal,
       integer: Db2Query::Type::Integer,
-      time: ActiveRecord::Type::Time,
-      date: ActiveRecord::Type::Date,
-      date_time: ActiveRecord::Type::DateTime,
-      float: ActiveRecord::Type::Float
+      date: Db2Query::Type::Date,
+      time: Db2Query::Type::Time,
+      timestamp: Db2Query::Type::Timestamp
     }
 
     def self.included(base)
@@ -21,8 +20,12 @@ module Db2Query
     end
 
     module ClassMethods
-      mattr_accessor :field_types_map
-      @@field_types_map = FIELD_TYPES_MAP
+      mattr_reader :field_types_map
+      @@field_types_map = nil
+
+      def set_field_types(types = DEFAULT_FIELD_TYPES)
+        @@field_types_map = types
+      end
     end
   end
 end

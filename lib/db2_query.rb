@@ -28,6 +28,9 @@ module Db2Query
     autoload :String, "db2_query/type/string"
     autoload :Text, "db2_query/type/text"
     autoload :Integer, "db2_query/type/integer"
+    autoload :Time, "db2_query/type/time"
+    autoload :Timestamp, "db2_query/type/timestamp"
+    autoload :Date, "db2_query/type/date"
   end
 
   autoload :SqlStatement, "db2_query/sql_statement"

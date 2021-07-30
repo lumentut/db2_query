@@ -79,7 +79,7 @@ module Db2Query
 
       def binds(args)
         keys.map.with_index do |key, index|
-          arg = args.is_a?(Hash) ? args[key] : args[index]
+          arg = args.first.is_a?(Hash) ? args.first[key] : args.first[index]
           [Bind.new(column_from_key(key), arg), arg]
         end
       end

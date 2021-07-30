@@ -59,7 +59,7 @@ class QueryTest < ActiveSupport::TestCase
     assert_equal [:first_name, :email], query.keys
 
     query.keys.each do |key|
-      assert_equal Db2Query::Type::Text, query.data_type(key).class
+      assert_equal Db2Query::Type::String, query.data_type(key).class
     end
 
     exception = assert_raise(Exception) { query.data_type(:fake) }
