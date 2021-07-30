@@ -3,7 +3,7 @@
 module Db2Query
   module Type
     class String < Value
-      DEFAULT = { limit: 255, trim: false }
+      DEFAULT = { trim: false }
 
       def initialize(options = DEFAULT)
         super(options)

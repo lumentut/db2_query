@@ -2,7 +2,7 @@
 
 module Db2Query
   module Type
-    class Binary < Value
+    class Binary
       def type
         :binary
       end
@@ -12,26 +12,7 @@ module Db2Query
       end
 
       def deserialize(value)
-        Data.new(value)
-      end
-
-      class Data
-        def initialize(value)
-          @value = value.to_s
-        end
-
-        def to_s
-          [@value].pack("H*")
-        end
-        alias_method :to_str, :to_s
-
-        def hex
-          @value.unpack1("H*")
-        end
-
-        def ==(other)
-          other == to_s || super
-        end
+        [value].pack("H*")
       end
     end
   end
