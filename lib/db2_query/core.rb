@@ -31,8 +31,8 @@ module Db2Query
             body.call(args << { query_name: query_name })
           end
         elsif query_args[0].is_a?(String)
-          sql, args = [query_args.first.strip, query_args.drop(1)]
-          query = raw_query(sql, args)
+          sql, query_args = [query_args.first.strip, query_args.drop(1)]
+          query = raw_query(sql, query_args)
           connection.raw_query(query.db2_spec_sql, query.args)
         elsif query_args[1].is_a?(String) && query_args[1].strip.length > 0
           query_name, sql = query_args
