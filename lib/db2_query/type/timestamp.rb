@@ -2,7 +2,7 @@
 
 module Db2Query
   module Type
-    class Time < Value
+    class Timestamp < Value
       def type
         :time
       end
@@ -10,20 +10,20 @@ module Db2Query
       def serialize(value)
         if value.is_a?(::String)
           case value
-          when /\A(\d\d)[:,.](\d\d)[:,.](\d\d)\z/
+          when  /\A(\d{4})-(\d\d)-(\d\d)-(\d\d).(\d\d).(\d\d).(\d{1,6})\z/
             quote(value)
           else
             nil
           end
-        elsif value.is_a?(::Time)
-          quote(value.strftime("%T"))
+        elsif value.is_a?(::DateTime) || value.is_a?(::Time)
+          quote(value.strftime("%F-%H.%M.%S.%6N"))
         else
           nil
         end
       end
 
       def deserialize(value)
-        value.strftime("%H:%M:%S")
+        value
       end
     end
   end

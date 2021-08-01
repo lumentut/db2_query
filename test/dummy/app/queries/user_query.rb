@@ -59,9 +59,9 @@ class UserQuery < Db2Query::Base
     INSERT INTO users ($first_name, $last_name, $email) VALUES (?, ?, ?)
   SQL
 
-  query :update_record, <<-SQL
-    UPDATE USERS SET $email = ? WHERE $id = ?
-  SQL
+  query :update_record, -> args {
+    exec_query("UPDATE USERS SET $email = ? WHERE $id = ?", args)
+  }
 
   query :delete_record, <<-SQL
     DELETE FROM users WHERE $id = ?

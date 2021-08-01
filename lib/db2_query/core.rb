@@ -24,19 +24,22 @@ module Db2Query
         connection.exec_query(query, args)
       end
 
-      def query(query_name, body = nil)
-        if body.respond_to?(:call)
+      def query(*query_args)
+        if query_args[1].respond_to?(:call)
+          query_name, body = query_args
           singleton_class.define_method(query_name) do |*args|
             body.call(args << { query_name: query_name })
           end
-        elsif body.is_a?(String) && body.strip.length > 0
-          query = definitions.lookup_query(query_name, body.strip)
+        elsif query_args[0].is_a?(String)
+          sql, args = [query_args.first.strip, query_args.drop(1)]
+          query = raw_query(sql, args)
+          connection.raw_query(query.db2_spec_sql, query.args)
+        elsif query_args[1].is_a?(String) && query_args[1].strip.length > 0
+          query_name, sql = query_args
+          query = definitions.lookup_query(query_name, sql.strip)
           singleton_class.define_method(query_name) do |*args|
             exec_query_result(query, args)
           end
-        elsif body.nil? && query_name.is_a?(String)
-          sql = query_name.strip
-          connection.query(sql)
         else
           raise Db2Query::QueryMethodError.new
         end
@@ -50,8 +53,8 @@ module Db2Query
       end
 
       def fetch_list(sql, args)
-        list = args.shift
-        fetch(sql_with_list(sql, list), args)
+        list = args.first
+        fetch(sql_with_list(sql, list), args.drop(1))
       end
 
       private
@@ -65,6 +68,13 @@ module Db2Query
         def reset_id_when_required(query)
           if query.insert_sql? && !query.column_id.nil?
             connection.reset_id_sequence!(query.table_name)
+          end
+        end
+
+        def raw_query(sql, args)
+          Query.new.tap do |query|
+            query.define_sql(sql)
+            query.define_args(args)
           end
         end
 

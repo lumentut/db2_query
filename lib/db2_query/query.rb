@@ -6,7 +6,7 @@ module Db2Query
 
     include SqlStatement
 
-    def initialize(query_name)
+    def initialize(query_name = nil)
       @columns = {}
       @query_name = query_name
       @sql_statement = nil
@@ -37,19 +37,28 @@ module Db2Query
       columns.length
     end
 
-    def serialized_args(args)
+    def raw_query_args(args)
+      case args
+      when Array, Hash
+        validated_args(args)
+      else
+        args
+      end
+    end
+
+    def define_args(args)
+      class_eval { attr_accessor "args" }
+      send("args=", raw_query_args(args))
+    end
+
+    def sorted_args(args)
       keys.map.with_index do |key, index|
-        arg = args.is_a?(Hash) ? args[key] : args[index]
-        data_type(key).serialize(arg)
+        serialized_arg(args.is_a?(Hash) ? args[key] : args[index], key)
       end
     end
 
     def column_id
       columns.fetch(:id, nil)
-    end
-
-    def column_from_key(key)
-      "#{key}".split(".").last.downcase
     end
 
     def validate_result_columns(result_columns)
@@ -60,7 +69,7 @@ module Db2Query
     end
 
     def exec_query_arguments(args)
-      [db2_spec_sql, binds(args), validate_args(args)]
+      [db2_spec_sql, binds(args), validated_args(args)]
     end
 
     def validate_select_query
@@ -77,19 +86,32 @@ module Db2Query
         raw_sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
       end
 
+      def serialized_arg(arg, key)
+        query_name.nil? ? arg : data_type(key).serialize(arg)
+      end
+
+      def column_from_key(key)
+        "#{key}".split(".").last.downcase
+      end
+
+      def new_bind(key, arg)
+        [Bind.new(column_from_key(key), arg), arg]
+      end
+
       def binds(args)
         keys.map.with_index do |key, index|
-          arg = args.first.is_a?(Hash) ? args.first[key] : args.first[index]
-          [Bind.new(column_from_key(key), arg), arg]
+          new_bind(key, args.first.is_a?(Hash)? args.first[key] : args[index])
         end
       end
 
-      def validate_args(args)
+      def validate_arguments(given, expected)
+        raise Db2Query::ArgumentError.new(given, expected) unless given == expected
+      end
+
+      def validated_args(args)
         args = args.first.is_a?(Hash) ? args.first : args
-        serialized_args(args).tap do |serialized_args|
-          given, expected = [args.length, serialized_args.length]
-          raise Db2Query::ArgumentError.new(given, expected) unless given == expected
-        end
+        validate_arguments(args.length, keys.length)
+        sorted_args(args)
       end
   end
 end

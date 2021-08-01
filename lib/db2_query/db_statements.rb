@@ -31,6 +31,13 @@ module Db2Query
       end
     end
 
+    def raw_query(sql, args = [])
+      pool do |client|
+        stmt = client.run(sql, *args)
+        raw_result(stmt)
+      end
+    end
+
     def exec_query(query, args = [])
       sql, binds, args = query.exec_query_arguments(args)
       log(sql, binds, args) do
@@ -61,6 +68,20 @@ module Db2Query
     private
       def max_id(table_name)
         query_value("SELECT COALESCE(MAX (ID),0) FROM #{table_name}")
+      end
+
+      def raw_result(stmt)
+        columns = stmt.columns.values.map { |col| col.name.downcase }
+        stmt.to_a.map do |row|
+          index, hash = [0, {}]
+          while index < columns.length
+            hash[columns[index].to_sym] = row[index]
+            index += 1
+          end
+          hash
+        end
+      ensure
+        stmt.drop unless stmt.nil?
       end
   end
 end

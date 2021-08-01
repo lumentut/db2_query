@@ -68,7 +68,7 @@ class QueryTest < ActiveSupport::TestCase
     first_name = "John"
     email = "john@doe.com"
 
-    sorted_args = query.serialized_args({ email: email, first_name: first_name })
+    sorted_args = query.sorted_args({ email: email, first_name: first_name })
     assert_equal [first_name, email], sorted_args
   end
 
@@ -126,5 +126,35 @@ class QueryTest < ActiveSupport::TestCase
     }
 
     assert_equal "Fetch queries are used for select statement query only.", exception.message
+  end
+
+  test "raw query" do
+    users = UserQuery.all
+
+    user = users.record
+    query_1 = Db2Query::Base.query("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", user.first_name, user.email)
+    assert_equal query_1.first[:first_name], user.first_name
+    assert_equal query_1.first[:email], user.email
+
+    query_2 = Db2Query::Base.query("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", email: user.email, first_name: user.first_name)
+    assert_equal query_2.first[:first_name], user.first_name
+    assert_equal query_2.first[:email], user.email
+
+    query_3 = Db2Query::Base.query("SELECT * FROM USERS")
+    assert_equal users.to_h, query_3
+
+    exception = assert_raise(Exception) {
+      Db2Query::Base.query("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", email: user.email)
+    }
+
+    assert_equal "Wrong number of arguments (given 1, expected 2)", exception.message
+  end
+
+  test "rails collaboration" do
+    users = UserQuery.all
+    user_1 = users.record
+    user_2 = User.by_name last_name: user_1.last_name, first_name: user_1.first_name
+
+    assert_equal user_1.id, user_2.first[:id]
   end
 end

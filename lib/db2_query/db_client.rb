@@ -4,17 +4,19 @@ module Db2Query
   class DbClient
     attr_reader :dsn
 
+    include ActiveModel::Type::Helpers::Timezone
+
     delegate :run, :do, to: :client
 
     def initialize(config)
       @dsn = config[:dsn]
       @idle_time_limit = config[:idle] || 5
       @client = new_client
-      @last_active = Time.now
+      @last_transaction = Time.now
     end
 
     def expire?
-      Time.now - @last_active > 60 * @idle_time_limit
+      Time.now - @last_transaction > 60 * @idle_time_limit
     end
 
     def active?
@@ -32,16 +34,22 @@ module Db2Query
     end
 
     def new_client
-      ODBC.connect(dsn)
+      ODBC.connect(dsn).tap do |odbc_conn|
+        odbc_conn.use_time = true
+        odbc_conn.use_utc = is_utc?
+      end
     rescue ::ODBC::Error => e
       raise Db2Query::ConnectionError.new(e.message)
     end
 
-    def client
-      return @client if connected_and_persist?
+    def reconnect!
       disconnect!
       @client = new_client
-      @last_active = Time.now
+    end
+
+    def client
+      reconnect! unless connected_and_persist?
+      @last_transaction = Time.now
       @client
     end
   end
