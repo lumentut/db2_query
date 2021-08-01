@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    db2_query (0.3.1)
+    db2_query (0.3.2)
       connection_pool (= 2.2.5)
       ruby-odbc
 
