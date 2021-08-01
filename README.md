@@ -36,17 +36,17 @@ Complete the configurations by editing the files according to your application r
 File **config/db2query.yml** consist of DSN/database name and connection pool config:
 ```yml
   development:
-     dsn: ARUNIT
+     dsn: LIBDEV
      idle: 5
      pool: 5
      timeout: 5
   test:
-     dsn: ARUNIT
+     dsn: LIBTEST
      idle: 5
      pool: 5
      timeout: 5
   production:
-     dsn: ARUNIT
+     dsn: LIBPROD
      idle: 5
      pool: 5
      timeout: 5
@@ -439,7 +439,7 @@ class MyQuery < Db2Query::Base
 end
 ```
 ```bash
-irb(main):001:0> MyQuery.user_by_email
+irb(main):001:0> MyQuery.user_by_email email: "yohanes@github.com"
   SQL (2.7ms)  SELECT * FROM USERS email = ?  [["email", "yohanes@github.com"]]
 => #<Db2Query::Result [#<Record id: 10000, first_name: Yohanes, ...]>
 ```
