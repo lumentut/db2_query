@@ -265,7 +265,7 @@ Create query class by using `rails g query NAME` commands. For example:
 ```bash
 $ rails g query NameSpace::Name --defines=first_query --queries=next_query  --lambdas=last_query
     create app/queries/name_space/name_query.rb
-    create  app/queries/definitions/movies_query_definitions.rb
+    create app/queries/definitions/name_space/name_query_definitions.rb
     create test/queries/name_space/name_query_test.rb
 ```
 This will create `app/queries/name_space/name_query.rb` file in `app/queries` directory.
