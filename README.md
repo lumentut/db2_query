@@ -135,6 +135,7 @@ Once you completely do [**Installation**](#1-installation) & [**Initialization**
 
 
 ```ruby
+# SQL Convention Examples
 # Example of Parameterized Query SQL usage
 
 Db2Query::Base.query("SELECT * FROM USERS WHERE $email = ?", "my_account@email.com")
@@ -143,7 +144,27 @@ Db2Query::Base.query("SELECT * FROM USERS WHERE $email = ?", "my_account@email.c
 
 Db2Query::Base.query("SELECT * FROM USERS WHERE email = 'my_account@email.com'")
 
+# Field Type Convention Example
+
+module Definitions
+  class UsersQueryDefinitions < Db2Query::Definitions
+    def describe
+      query_definition :all do |c|
+        c.id          :integer
+        c.first_name  :varchar
+        c.last_name   :varchar
+        c.email       :varchar
+      end
+    end
+  end
+end
+
+# Argument Key Convention Example
+
+MyQuery.find_user_by_id id: 10000
+
 ```
+
 
 ### 3.1 Basic Usage
 
