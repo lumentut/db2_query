@@ -122,8 +122,17 @@ end
 
 ## 3. Usage
 
-Once you completely do [**Installation**](#1-installation) & [**Initialization**](#2-initialization), basically you has been ready to use **Db2Query::Base** with an additional **SQL Convention**:
-> Dollar symbol **$** is used as the prefix of all column names **in the WHERE clause** of provided **Parameterized Query** SQL string. It is used as a pointer in the binding process of key and value of query arguments. We have to provide it manually in SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.
+Once you completely do [**Installation**](#1-installation) & [**Initialization**](#2-initialization), basically you has been ready to use **Db2Query::Base** with three additional conventions: **SQL Convention**, **Field Type Convention**, **Argument Key Convention**.
+
+**SQL Convention**:
+> **"** Dollar symbol **$** is used as the prefix of all column names **in the WHERE clause** of provided **Parameterized Query** SQL string. It is used as a pointer in the binding process of key and value of query arguments. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.**"**
+
+**Field Type Convention**:
+> **"** **field_name** written in **query_definition** block must be in downcased format.**"**
+
+**Argument Key Convention**:
+> **"** **Argument Key** passed into query have to follow its parameter written in the SQL. It is case-sensitive. If the parameter in your SQL is written in downcase format, then your argument key has to be in downcase format too.**"**
+
 
 ```ruby
 # Example of Parameterized Query SQL usage
@@ -179,8 +188,7 @@ Db2Query::Base.execute("DELETE FROM users WHERE $id = ?", 10000)
 
 QueryDefinitions is helpful when you need formatter methods that **serialize** the data before it being sent to the database and **deserialize** database output data before being consumed by **Rails application**. The real examples are **Binary** and **Boolean** field types.
 At **Db2Query::Type::Binary**, the data `unpacked` by `serialize` method before sending to the database and do `deserialize` operation to `pack` the database returned data.
-QueryDefinition can be used as **Query Schema** where the **field types** of a query are outlined.
-
+QueryDefinition can be used as **Query Schema** where the **field types** of a query are outlined. The field-type written in QueryDefinition has to follow the **Field Type Convention**.
 
 A QueryDefinitions reside in `app_root/app/queries/definitions` directory. It is automatically created when you create your query by using run `rails g query query_name` [**generator**](#33-generator) command. The QueryDefinitions class can be defined as follow:
 ```ruby
@@ -342,7 +350,7 @@ end
 ```
 
 #### 3.4.3 Lambda Query (--lambdas)
-Query implementation that use built in `query` method. The input arguments consists of `query_name` symbol and a lambda function. We have to pass `args` as the arguments of a lambda function. Do not change the `args` with let's say `-> id, email { ... }`. Just leave it written as `args`. The `args` is used by `Db2Query::Base` to store `query_name` and the other `arg` inputs.
+Query implementation that uses the built-in `query` method. The input arguments consist of the `query_name` symbol and a lambda function. We have to pass `args` as the arguments of a lambda function. Do not change the `args` with let's say `-> id, email { ... }`. Just leave it written as `args`. The `args` is used by `Db2Query::Base` to store `query_name` and the other `arg` inputs.
 
 Example:
 ```ruby
@@ -357,7 +365,7 @@ class MyQuery < Db2Query::Base
 end
 ```
 
-You can call all three example with the same methods:
+Then you can call all three example with the same methods:
 
 ```bash
 irb(main):001:0> MyQuery.all_users
@@ -367,8 +375,10 @@ irb(main):001:0> MyQuery.all_users
 irb(main):001:0> MyQuery.find_user_by_id 10000
   SQL (3.0ms)  SELECT * FROM USERS WHERE id = ?  [["id", 10000]]
 => #<Db2Query::Result [#<Record id: 10004, first_name: Yohanes, ...]>
+```
+If you pass a key-value argument into query, the key has to follow **Argument Key Convention**
 
-or
+```bash
 irb(main):001:0> MyQuery.find_user_by_id(id: 10000)
   SQL (3.0ms)  SELECT * FROM USERS WHERE id = ?  [["id", 10000]]
 => #<Db2Query::Result [#<Record id: 10004, first_name: Yohanes, ...]>
@@ -447,7 +457,9 @@ user.email      # => "captain.marvel@marvel.universe.com"
 ```
 
 ### 3.7 Formatter
-For the latest version of **Db2Query**, there is no more **Db2Query::Formatter** class. We can implement our formater into **deserialize** method of our [**QueryDefinitions**](#32-querydefinitions)
+For the latest version of **Db2Query**, there is no more **Db2Query::Formatter** class. We can implement our formater into **deserialize** method of our [**QueryDefinitions**](#32-querydefinitions).
+
+If you upgrade from the previous version, you have to run **`rake db2query:init`** again to override the initializer. Please create a backup of your Formatter classes before you do this operation. Then you can implement your Formatter methods into your **QueryDefinitions**.
 
 ## 4. Available Result Object methods
 `Db2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom methods:
@@ -457,7 +469,7 @@ For the latest version of **Db2Query**, there is no more **Db2Query::Formatter**
 
 ## 5. ActiveRecord Combination
 
-Create an abstract class that inherit from `ActiveRecord::Base`. We have to implement `splat` operator correctly at the arguments to make it works.
+Create an abstract class that inherits from `ActiveRecord::Base`. We have to implement `splat` operator correctly at the arguments to make it works.
 
 ```ruby
 class Db2Record < ActiveRecord::Base
