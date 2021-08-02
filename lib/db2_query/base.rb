@@ -4,7 +4,6 @@ module Db2Query
   class Base
     include Config
     include Helper
-    include Quoting
     include DbConnection
     include FieldType
     include Core
