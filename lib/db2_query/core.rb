@@ -28,8 +28,8 @@ module Db2Query
         if body.is_a?(Proc)
           -> args { body.call(args << { query_name: query_name }) }
         elsif body.is_a?(String)
-          definition = definitions.lookup_query(query_name, body.strip)
-          -> args { exec_query_result(definition, args) }
+          query = definitions.lookup_query(query_name, body.strip)
+          -> args { exec_query_result(query, args) }
         else
           raise Db2Query::QueryMethodError.new
         end
