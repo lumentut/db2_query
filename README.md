@@ -36,17 +36,17 @@ Complete the configurations by editing the files according to your application r
 File **config/db2query.yml** consist of DSN/database name and connection pool config:
 ```yml
   development:
-     dsn: ARUNIT
+     dsn: LIBDEV
      idle: 5
      pool: 5
      timeout: 5
   test:
-     dsn: ARUNIT
+     dsn: LIBTEST
      idle: 5
      pool: 5
      timeout: 5
   production:
-     dsn: ARUNIT
+     dsn: LIBPROD
      idle: 5
      pool: 5
      timeout: 5
@@ -265,7 +265,7 @@ Create query class by using `rails g query NAME` commands. For example:
 ```bash
 $ rails g query NameSpace::Name --defines=first_query --queries=next_query  --lambdas=last_query
     create app/queries/name_space/name_query.rb
-    create  app/queries/definitions/movies_query_definitions.rb
+    create app/queries/definitions/name_space/name_query_definitions.rb
     create test/queries/name_space/name_query_test.rb
 ```
 This will create `app/queries/name_space/name_query.rb` file in `app/queries` directory.
@@ -439,7 +439,7 @@ class MyQuery < Db2Query::Base
 end
 ```
 ```bash
-irb(main):001:0> MyQuery.user_by_email
+irb(main):001:0> MyQuery.user_by_email email: "yohanes@github.com"
   SQL (2.7ms)  SELECT * FROM USERS email = ?  [["email", "yohanes@github.com"]]
 => #<Db2Query::Result [#<Record id: 10000, first_name: Yohanes, ...]>
 ```
