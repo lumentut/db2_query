@@ -24,24 +24,26 @@ module Db2Query
         connection.exec_query(query, args)
       end
 
-      def query(*query_args)
-        if query_args[1].respond_to?(:call)
-          query_name, body = query_args
-          singleton_class.define_method(query_name) do |*args|
-            body.call(args << { query_name: query_name })
-          end
-        elsif query_args[0].is_a?(String)
-          sql, query_args = [query_args.first.strip, query_args.drop(1)]
-          query = raw_query(sql, query_args)
-          connection.raw_query(query.db2_spec_sql, query.args)
-        elsif query_args[1].is_a?(String) && query_args[1].strip.length > 0
-          query_name, sql = query_args
-          query = definitions.lookup_query(query_name, sql.strip)
-          singleton_class.define_method(query_name) do |*args|
-            exec_query_result(query, args)
-          end
+      def query_resolver(query_name, body)
+        if body.is_a?(Proc)
+          -> args { body.call(args << { query_name: query_name }) }
+        elsif body.is_a?(String)
+          definition = definitions.lookup_query(query_name, body.strip)
+          -> args { exec_query_result(definition, args) }
         else
           raise Db2Query::QueryMethodError.new
+        end
+      end
+
+      def query(*query_args)
+        if query_args.first.is_a?(Symbol)
+          query_name, body = query_args
+          resolver = query_resolver(query_name, body)
+          singleton_class.define_method(query_name) { |*args| resolver.call(args) }
+        elsif query_args.first.is_a?(String)
+          sql, args = [query_args.first.strip, query_args.drop(1)]
+          definition = raw_query(sql, args)
+          connection.raw_query(definition.db2_spec_sql, definition.args)
         end
       end
       alias define query
