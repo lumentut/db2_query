@@ -224,7 +224,7 @@ QueryDefinitions is helpful when you need formatter methods that **serialize** t
 At **Db2Query::Type::Binary**, the data `unpacked` by `serialize` method before sending to the database and do `deserialize` operation to `pack` the database returned data.
 QueryDefinition can be used as **Query Schema** where the **field types** of a query are outlined. The field-type written in QueryDefinition has to follow the **Field Type Convention**.
 
-A QueryDefinitions reside in `app_root/app/queries/definitions` directory. It is automatically created when you create your query by using run `rails g query query_name` [**generator**](#33-generator) command. The QueryDefinitions class can be defined as follow:
+A QueryDefinitions reside in `app_root/app/queries/definitions` directory. It is automatically created when you create your query by running `rails g query query_name` [**generator**](#33-generator) command. The QueryDefinitions class can be defined as follow:
 ```ruby
 # app_root/app/queries/definitions/your_query_definitions.rb
 module Definitions
