@@ -439,7 +439,8 @@ user.email      # => "yohanes@github.com"
 ```
 
 ### 3.5 SQL extention (`@extention`)
-For the sake of a reusable `sql`, we can extend it by using a combination of `extention` and `sql_with_extention` methods,  with an `@extention` pointer at SQL statement.
+For the sake of reusable SQL string, we can reuse the most commonly used SQL part by implementing `sql_with_extention` methods with an SQL string argument contain `@extention` pointer at SQL statement.
+
 ```ruby
 class MyQuery < Db2Query::Base
   # reusable SQL
