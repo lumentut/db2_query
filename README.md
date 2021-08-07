@@ -70,7 +70,9 @@ end
 ```
 
 ### Custom Field Type
-**FieldTypes** are classes that used by **Db2Query** to format the data before sending it to the database by using `serialize` method and converting the **query result** before consumed by your **Rails application** by using `deserialize` method. Both `serialize` and `deserialize` operations are only applied when you provide **QueryDefinitions** on your query. By default, there are ten field types that can be used in your [query definitions](#32-querydefinitions) :
+**FieldTypes** are classes that are used by **Db2Query** to format the data before sending it to the database by using `serialize` method and `deserialize` the returned query result data by converting the **query result** before consumed by your **Rails application**. Both `serialize` and `deserialize` operations are only applied when you provide **QueryDefinitions** on your query. 
+
+By default, there are ten field types that can be used in your [query definitions](#32-querydefinitions) :
 
 ```ruby
   DEFAULT_FIELD_TYPES = {
@@ -100,7 +102,7 @@ You can use your own Field type class by extending **Db2Query::Type::Value** cla
     end
  end
 ```
-Then map the classes into a variable and load it into the **Db2Query::Base** by using **set_field_types** method in the initializer file.
+Then put the classes into a field types hash constant and load it into the **Db2Query::Base** by using **set_field_types** method in the initializer file.
 ```ruby
 # app_root/config/initializers/db2query.rb
 
@@ -122,17 +124,10 @@ end
 
 ## 3. Usage
 
-Once you completely do [**Installation**](#1-installation) & [**Initialization**](#2-initialization), basically you has been ready to use **Db2Query::Base** with three additional conventions: **SQL Convention**, **Field Type Convention**, **Argument Key Convention**.
+Once you completely do the [**Installation**](#1-installation) & [**Initialization**](#2-initialization) steps, basically you has been ready to use **Db2Query::Base**. There are three additional rules that help **Db2Query** run properly: **SQL Convention**, **Field Type Convention**, **Argument Key Convention**.
 
 **SQL Convention**:
-> **"** Dollar symbol **$** is used as the prefix of all column names **in the WHERE clause** of provided **Parameterized Query** SQL string. It is used as a pointer in the binding process of key and value of query arguments. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.**"**
-
-**Field Type Convention**:
-> **"** **field_name** written in **query_definition** block must be in downcased format.**"**
-
-**Argument Key Convention**:
-> **"** **Argument Key** passed into query have to follow its parameter written in the SQL. It is case-sensitive. If the parameter in your SQL is written in downcase format, then your argument key has to be in downcase format too.**"**
-
+> Dollar symbol **$** is used as the prefix of all column names **in the WHERE clause** of provided **Parameterized Query** SQL string. It is used as a pointer in the query arguments key and value binding process. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.
 
 ```ruby
 # SQL Convention Examples
@@ -143,7 +138,12 @@ Db2Query::Base.query("SELECT * FROM USERS WHERE $email = ?", "my_account@email.c
 # Example of Normal SQL usage
 
 Db2Query::Base.query("SELECT * FROM USERS WHERE email = 'my_account@email.com'")
+```
 
+**Field Type Convention**:
+> Query definition's **field_name** written in **query_definition** block must be in downcased format.
+
+```ruby
 # Field Type Convention Example
 
 module Definitions
@@ -158,8 +158,21 @@ module Definitions
     end
   end
 end
+```
 
+**Argument Key Convention**:
+> The letter case of a **Named Argument** key that passed into a query, has to follow its parameter letter case format that is written in the SQL. The argument key is case-sensitive. If the parameter in your SQL is written in downcase format, then your argument key has to be in downcase format too, and vice versa.
+
+```ruby
 # Argument Key Convention Example
+
+class MyQuery < Db2Query::Base
+  ...
+  query :find_by, <<-SQL
+    SELECT * FROM USERS WHERE $id = ?
+  SQL
+  ...
+end
 
 MyQuery.find_user_by_id id: 10000
 
@@ -366,7 +379,7 @@ class MyQuery < Db2Query::Base
 
   query :find_user_by_id, <<-SQL
     SELECT * FROM USERS WHERE $id = ?
-  end
+  SQL
 end
 ```
 
@@ -426,7 +439,7 @@ user.email      # => "yohanes@github.com"
 ```
 
 ### 3.5 SQL extention (`@extention`)
-For a reusable `sql`, we can extend it by using a combination of `extention` and `sql_with_extention` methods,  with an `@extention` pointer at SQL statement.
+For the sake of a reusable `sql`, we can extend it by using a combination of `extention` and `sql_with_extention` methods,  with an `@extention` pointer at SQL statement.
 ```ruby
 class MyQuery < Db2Query::Base
   # reusable SQL
