@@ -124,7 +124,7 @@ end
 
 ## 3. Usage
 
-Once you completely do the [**Installation**](#1-installation) & [**Initialization**](#2-initialization) steps, basically you has been ready to use **Db2Query::Base**. There are three additional rules that help **Db2Query** run properly: **SQL Convention**, **Field Type Convention**, **Argument Key Convention**.
+Once you completely do the [**Installation**](#1-installation) & [**Initialization**](#2-initialization) steps, basically you has been ready to use **Db2Query::Base**. There are three additional rules that help **Db2Query** run properly: **SQL Convention**, **Field Type Convention**, and **Argument Key Convention**.
 
 **SQL Convention**:
 > Dollar symbol **$** is used as the prefix of all column names **in the WHERE clause** of provided **Parameterized Query** SQL string. It is used as a pointer in the query arguments key and value binding process. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.
