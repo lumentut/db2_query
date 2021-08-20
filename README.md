@@ -549,6 +549,7 @@ SQL Load (3.28ms)  SELECT * FROM USERS WHERE age > 500
 ## 6. Examples
 
 For complete examples please see the basic examples [here](https://github.com/yohaneslumentut/db2_query/blob/master/test/dummy/app/queries/user_query.rb).
+Please see [**Db2Session**](https://github.com/yohaneslumentut/db2_session) for multi user of remote server  **REST** and **GraphQL** implementation.
 
 ## 7. License
 The gem is available as open-source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
