@@ -2,11 +2,17 @@
 
 <% module_definitions_namespacing do -%>
 class <%= query_class_name %>Definitions < <%= "Db2Query::Definitions" %>
+<% if @query_methods.empty? %>
+<%= indent("def describe\n") -%>
+<%= indent("") %>
+<%= indent("end") %>
+<% else %>
 <%= indent("def describe") -%>
 <% @query_methods.each do |method| %>
   <%= indent("query_definition :#{method} do |c|\n") %>
   <%= indent("end") %>
 <% end -%>
 <%= indent("end") %>
+<% end %>
 <%= 'end' -%>
 <% end %>
