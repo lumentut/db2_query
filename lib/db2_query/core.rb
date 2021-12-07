@@ -31,8 +31,8 @@ module Db2Query
           body_lambda = if body.is_a?(Proc)
             -> args { body.call(args << { query_name: query_name }) }
           elsif body.is_a?(String)
-            query = definitions.lookup_query(query_name, body.strip)
-            -> args { exec_query_result(query, args) }
+            definition = definitions.lookup_query(query_name, body.strip)
+            -> args { exec_query_result(definition, args) }
           else
             raise Db2Query::QueryMethodError.new
           end
@@ -43,9 +43,9 @@ module Db2Query
         elsif query_args.first.is_a?(String)
           sql, args = [query_args.first.strip, query_args.drop(1)]
 
-          definition = Query.new.tap do |query|
-            query.define_sql(sql)
-            query.define_args(args)
+          definition = Query.new.tap do |d|
+            d.define_sql(sql)
+            d.define_args(args)
           end
 
           connection.raw_query(definition.db2_spec_sql, definition.args)
