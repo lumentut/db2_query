@@ -278,7 +278,7 @@ Sometimes, the `query arguments` do not exist in query definitions fields. In su
 ```ruby
 module NameSpace
   class QueryName < Db2Query::Base
-    arguments :user_by_email, { email: :string, trim: true }
+    query_arguments :user_by_email, { email: :string, trim: true }
 
     def user_by_email_sql
       "SELECT id, first_name, last_name FROM USERS WHERE $email = ?"
