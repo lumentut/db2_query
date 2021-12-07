@@ -86,6 +86,12 @@ class CasesTest < ActiveSupport::TestCase
     assert_equal user_by_ids.record.first_name, user.first_name
   end
 
+  test "query arguments" do
+    user = UserQuery.all.record
+    user_by_email = UserQuery.mailto user.email
+    assert_equal user_by_email.mailto, user.email
+  end
+
   test "sql insert update delete" do
     last_id = UserQuery.all.records.last.id
     first_name = "john"
@@ -130,7 +136,7 @@ class CasesTest < ActiveSupport::TestCase
     assert_equal("The query body needs to be callable or is a SQL statement string", exception.message)
   end
 
-  test "extention sql and list input" do
+  test "extension sql and list input" do
     users = UserQuery.all.records
     user_names = users.map { |record| record.first_name }
 
@@ -144,11 +150,11 @@ class CasesTest < ActiveSupport::TestCase
     assert_equal user_by_names.length, user_names.length
   end
 
-  test "wrong extention sql and list input" do
+  test "wrong extension sql and list input" do
     exception_1 = assert_raise(Exception) { UserQuery.wrong_list_pointer ["john", "doe"] }
     assert_equal "Missing @list pointer at SQL", exception_1.message
-    exception_2 = assert_raise(Exception) { UserQuery.wrong_extention_pointer ["john", "doe"] }
-    assert_equal "Missing @extention pointer at SQL", exception_2.message
+    exception_2 = assert_raise(Exception) { UserQuery.wrong_extension_pointer ["john", "doe"] }
+    assert_equal "Missing @extension pointer at SQL", exception_2.message
     exception_3 = assert_raise(Exception) { UserQuery.by_ids 10000, 10001 }
     assert_equal "The arguments should be an array of list", exception_3.message
   end

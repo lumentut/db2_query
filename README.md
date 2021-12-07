@@ -207,6 +207,8 @@ Db2Query::Base.execute("DELETE FROM users WHERE $id = ?", 10000)
 
 ### 3.2 QueryDefinitions
 
+#### 3.2.1 Query Field Definitions
+
 QueryDefinitions is helpful when you need formatter methods that **serialize** the data before it being sent to the database and **deserialize** database output data before being consumed by **Rails application**. The real examples are **Binary** and **Boolean** field types.
 At **Db2Query::Type::Binary**, the data `unpacked` by `serialize` method before sending to the database and do `deserialize` operation to `pack` the database returned data.
 QueryDefinition can be used as **Query Schema** where the **field types** of a query are outlined. The field-type written in QueryDefinition has to follow the **Field Type Convention**.
@@ -256,7 +258,21 @@ module Definitions
 end
 
 ```
+#### 3.2.2 Query Argument Types
 
+Sometimes, the `query arguments` do not exist in query definitions fields. In such a case, we have to provide `query argument types` at the Query class.
+
+```ruby
+module NameSpace
+  class QueryName < Db2Query::Base
+    arguments :user_by_email, { email: :string, trim: true }
+
+    def user_by_email_sql
+      "SELECT id, first_name, last_name FROM USERS WHERE $email = ?"
+    end
+  end
+end
+```
 
 ### 3.3 Generator
 
@@ -425,13 +441,13 @@ user.last_name  # => "Lumentut"
 user.email      # => "yohanes@github.com"
 ```
 
-### 3.5 SQL extention (`@extention`)
-For a reusable `sql`, we can extend it by using a combination of `extention` and `sql_with_extention` methods,  with an `@extention` pointer at SQL statement.
+### 3.5 SQL extension (`@extension`)
+For a reusable `sql`, we can extend it by using a combination of `extension` and `sql_with_extension` methods,  with an `@extension` pointer at SQL statement.
 ```ruby
 class MyQuery < Db2Query::Base
   # reusable SQL
-  _SQL = -> extention {
-    sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
+  _SQL = -> extension {
+    sql_with_extension("SELECT * FROM USERS WHERE @extension", extension)
   }
   
   # implementation

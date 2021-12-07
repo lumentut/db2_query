@@ -3,9 +3,11 @@
 module Db2Query
   class Definitions
     attr_accessor :types, :types_map
+    attr_reader :arguments_map
 
-    def initialize(types_map)
-      @types_map = types_map
+    def initialize(query_arguments_map, field_types_map)
+      @arguments_map = query_arguments_map
+      @types_map = field_types_map
       describe
       initialize_types
     end
@@ -34,6 +36,10 @@ module Db2Query
       query_name, sql = query_definitions(args)
       lookup(query_name).tap do |query|
         query.define_sql(sql)
+        query.argument_keys.each do |key|
+          key, key_def = query_arg_key(query, key)
+          query.argument_types.store(key, data_type_instance(key_def))
+        end
       end
     end
 
@@ -74,6 +80,14 @@ module Db2Query
           [query_name, args.last]
         else args
         end
+      end
+
+      def query_arg_key(query, key)
+        [key, unless arguments_map[query.query_name].nil?
+          arguments_map[query.query_name][key]
+        else
+          query.columns[key]
+        end]
       end
   end
 end

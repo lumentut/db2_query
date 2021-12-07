@@ -16,12 +16,13 @@ module Db2Query
         sql.gsub("@list", "'#{list.join("', '")}'")
       end
 
-      def sql_with_extention(sql, extention)
-        if sql.scan(/\@extention+/).length == 0
-          raise Db2Query::ExtentionError, "Missing @extention pointer at SQL"
+      def sql_with_extension(sql, extension)
+        if sql.scan(/\@extension+/).length == 0
+          raise Db2Query::ExtensionError, "Missing @extension pointer at SQL"
         end
-        sql.gsub("@extention", extention.strip)
+        sql.gsub("@extension", extension.strip)
       end
+      alias sql_with_extention sql_with_extension
 
       private
         def sql_query_methods
@@ -42,7 +43,7 @@ module Db2Query
         end
 
         def fetch_error_message
-          "`fetch`, `fetch_list` and `fetch_extention` methods applied for SQL `select` statement only."
+          "`fetch`, `fetch_list` and `fetch_extension` methods applied for SQL `select` statement only."
         end
     end
   end

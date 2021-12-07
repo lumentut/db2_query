@@ -48,6 +48,7 @@ module Db2Query
       @config = config
       @instrumenter = ActiveSupport::Notifications.instrumenter
       @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+      @connection_pool = nil
       create_connection_pool
     end
 

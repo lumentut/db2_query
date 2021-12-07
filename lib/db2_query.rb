@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "active_record"
 require "active_support"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_record"
 require "active_model/type"
 require "connection_pool"
 require "odbc_utf8"
@@ -44,6 +44,6 @@ module Db2Query
   def self.root
     __dir__
   end
-
-  require "db2_query/railtie" if defined?(Rails)
 end
+
+require "db2_query/railtie" if defined?(Rails)

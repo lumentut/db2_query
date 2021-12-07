@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-class UserQuery < Db2Query::Base 
+class UserQuery < Db2Query::Base
+  query_arguments :mailto, { email: :string, trim: true }
+
   def all_sql
     "SELECT * FROM USERS"
   end
@@ -37,8 +39,8 @@ class UserQuery < Db2Query::Base
     fetch_list("SELECT * FROM USERS WHERE $first_name LIKE ? AND id IN (@list)", args)
   }
 
-  SQL = -> extention {
-    sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
+  SQL = -> extension {
+    sql_with_extension("SELECT * FROM USERS WHERE @extension", extension)
   }
 
   query :by_names, -> args {
@@ -54,6 +56,10 @@ class UserQuery < Db2Query::Base
   query :by_email, SQL.("$email = ?")
 
   query :by_first_name, SQL.("$first_name = ?")  
+
+  query :mailto, <<-SQL
+    SELECT id, first_name, last_name, email AS mailto FROM USERS WHERE $email = ?
+  SQL
 
   query :insert_record, <<-SQL
     INSERT INTO users ($first_name, $last_name, $email) VALUES (?, ?, ?)
@@ -77,11 +83,11 @@ class UserQuery < Db2Query::Base
     )
   }
 
-  _SQL = -> extention {
-    sql_with_extention("SELECT * FROM USERS WHERE extention", extention)
+  _SQL = -> extension {
+    sql_with_extension("SELECT * FROM USERS WHERE extension", extension)
   }
 
-  query :wrong_extention_pointer, -> args {
+  query :wrong_extension_pointer, -> args {
     fetch_list(
       _SQL.("first_name IN (@list)"), args
     )

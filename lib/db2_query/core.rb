@@ -24,29 +24,44 @@ module Db2Query
         connection.exec_query(query, args)
       end
 
-      def query_resolver(query_name, body)
-        if body.is_a?(Proc)
-          -> args { body.call(args << { query_name: query_name }) }
-        elsif body.is_a?(String)
-          query = definitions.lookup_query(query_name, body.strip)
-          -> args { exec_query_result(query, args) }
-        else
-          raise Db2Query::QueryMethodError.new
-        end
-      end
-
       def query(*query_args)
         if query_args.first.is_a?(Symbol)
           query_name, body = query_args
-          resolver = query_resolver(query_name, body)
-          singleton_class.define_method(query_name) { |*args| resolver.call(args) }
+
+          body_lambda = if body.is_a?(Proc)
+            -> args { body.call(args << { query_name: query_name }) }
+          elsif body.is_a?(String)
+            query = definitions.lookup_query(query_name, body.strip)
+            -> args { exec_query_result(query, args) }
+          else
+            raise Db2Query::QueryMethodError.new
+          end
+
+          singleton_class.define_method(query_name) do |*args|
+            body_lambda.call(args)
+          end
         elsif query_args.first.is_a?(String)
           sql, args = [query_args.first.strip, query_args.drop(1)]
-          definition = raw_query(sql, args)
+
+          definition = Query.new.tap do |query|
+            query.define_sql(sql)
+            query.define_args(args)
+          end
+
           connection.raw_query(definition.db2_spec_sql, definition.args)
+        else
+          raise Db2Query::Error, "Wrong query implementation"
         end
       end
       alias define query
+
+      def query_arguments_map
+        @query_arguments_map ||= {}
+      end
+
+      def query_arguments(query_name, argument_types)
+        query_arguments_map[query_name] = argument_types
+      end
 
       def fetch(sql, args = [])
         query = definitions.lookup_query(args, sql)
@@ -62,7 +77,10 @@ module Db2Query
       private
         def new_definitions
           definition_class = "Definitions::#{name}Definitions"
-          Object.const_get(definition_class).new(field_types_map)
+          Object.const_get(definition_class).new(
+            query_arguments_map,
+            field_types_map
+          )
         rescue Exception => e
           raise Db2Query::Error, e.message
         end
@@ -70,13 +88,6 @@ module Db2Query
         def reset_id_when_required(query)
           if query.insert_sql? && !query.column_id.nil?
             connection.reset_id_sequence!(query.table_name)
-          end
-        end
-
-        def raw_query(sql, args)
-          Query.new.tap do |query|
-            query.define_sql(sql)
-            query.define_args(args)
           end
         end
 

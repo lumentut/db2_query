@@ -31,12 +31,12 @@ class TestQuery < Db2Query::Base
     fetch_list("SELECT * FROM USERS WHERE ID IN (@list)", args)
   }
 
-  _SQL = -> extention {
-    sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
+  _SQL = -> extension {
+    sql_with_extention("SELECT * FROM USERS WHERE @extension", extension)
   }
 
-  __SQL = -> extention {
-    sql_with_extention("SELECT * FROM USERS WHERE extention", extention)
+  __SQL = -> extension {
+    sql_with_extension("SELECT * FROM USERS WHERE extension", extension)
   }
 
   query :wrong_list_pointer, -> args {
@@ -45,7 +45,7 @@ class TestQuery < Db2Query::Base
     )
   }
 
-  query :wrong_extention_pointer, -> args {
+  query :wrong_extension_pointer, -> args {
     fetch_list(
       __SQL.("first_name IN (@list)"), args
     )

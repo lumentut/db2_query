@@ -72,8 +72,8 @@ class QueryTest < ActiveSupport::TestCase
     assert_equal [first_name, email], sorted_args
   end
 
-  SQL = -> extention {
-    UserQuery.sql_with_extention("SELECT * FROM USERS WHERE @extention", extention)
+  SQL = -> extension {
+    UserQuery.sql_with_extension("SELECT * FROM USERS WHERE @extension", extension)
   }
 
   def fetch_list(sql, args)

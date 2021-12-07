@@ -2,7 +2,7 @@
 
 module Db2Query
   class Query
-    attr_reader :columns, :keys, :query_name, :sql, :types
+    attr_reader :query_name, :sql, :columns, :keys, :types, :argument_types
 
     include SqlStatement
 
@@ -10,11 +10,12 @@ module Db2Query
       @columns = {}
       @query_name = query_name
       @sql_statement = nil
+      @argument_types = {}
       @types = {}
     end
 
     def define_sql(sql)
-      @keys ||= new_keys(sql)
+      @keys ||= sql_arguments(sql)
       @sql ||= sql.tr("$", "")
     end
 
@@ -31,6 +32,19 @@ module Db2Query
       types.fetch(column.to_sym)
     rescue
       raise Db2Query::Error, "No column #{column} found at query: #{query_name} definitions"
+    end
+
+    def argument_type(key)
+      argument_types.fetch(key) || data_type(key)
+    rescue
+      raise Db2Query::Error, "No argument #{key} type found at query: #{query_name}"
+    end
+
+    def argument_keys
+      keys.map do |key|
+        arg_key = "#{key}".split(".").last
+        arg_key.to_sym unless arg_key.nil?  
+      end
     end
 
     def length
@@ -52,7 +66,7 @@ module Db2Query
     end
 
     def sorted_args(args)
-      keys.map.with_index do |key, index|
+      argument_keys.map.with_index do |key, index|
         serialized_arg(args.is_a?(Hash) ? args[key] : args[index], key)
       end
     end
@@ -82,12 +96,12 @@ module Db2Query
     end
 
     private
-      def new_keys(raw_sql)
-        raw_sql.scan(/\$\S+/).map { |key| key.gsub!(/[$=,)]/, "").to_sym }
+      def sql_arguments(raw_sql)
+        raw_sql.scan(/\$\S+/).map { |arg| arg.gsub!(/[$=,)]/, "").to_sym }
       end
 
       def serialized_arg(arg, key)
-        query_name.nil? ? arg : data_type(key).serialize(arg)
+        query_name.nil? ? arg : argument_type(key).serialize(arg)
       end
 
       def column_from_key(key)
@@ -104,14 +118,11 @@ module Db2Query
         end
       end
 
-      def validate_arguments(given, expected)
-        raise Db2Query::ArgumentError.new(given, expected) unless given == expected
-      end
-
       def validated_args(args)
-        args = args.first.is_a?(Hash) ? args.first : args
-        validate_arguments(args.length, keys.length)
-        sorted_args(args)
+        arguments = args.first.is_a?(Hash) ? args.first : args
+        given, expected = [arguments.length, keys.length]
+        raise Db2Query::ArgumentError.new(given, expected) unless given == expected
+        sorted_args(arguments)
       end
   end
 end

@@ -39,7 +39,7 @@ module Db2Query
     end
   end
 
-  class ExtentionError < StandardError
+  class ExtensionError < StandardError
   end
 
   class ImplementationError < StandardError
