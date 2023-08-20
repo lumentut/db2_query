@@ -571,7 +571,7 @@ Please see [**Db2Session**](https://github.com/yohaneslumentut/db2_session) for 
 
 To run a development test:
 ```bash
-$ RUBYOPT='-W0' bin/test test
+$ bin/test test
 ```
 
 ## 8. License
