@@ -1,9 +1,14 @@
+GIT
+  remote: https://github.com/vhermecz/ruby-odbc.git
+  revision: 0423cec482ef837af710ff291aa45bbc53c398e5
+  specs:
+    ruby-odbc (0.999991)
+
 PATH
   remote: .
   specs:
     db2_query (0.3.3)
       connection_pool (= 2.2.5)
-      ruby-odbc
 
 GEM
   remote: https://rubygems.org/
@@ -175,7 +180,6 @@ GEM
       activesupport (>= 4.2.0)
       rack (>= 1.1)
       rubocop (>= 1.33.0, < 2.0)
-    ruby-odbc (0.999991)
     ruby-progressbar (1.13.0)
     sqlite3 (1.6.3-x86_64-linux)
     strings-ansi (0.2.0)
@@ -207,6 +211,7 @@ DEPENDENCIES
   rubocop
   rubocop-performance
   rubocop-rails
+  ruby-odbc!
   sqlite3
   tty-progressbar
 

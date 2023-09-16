@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class BinaryTest < ActiveSupport::TestCase
   FIXTURES = %w(flowers.jpg example.log test.txt)
 

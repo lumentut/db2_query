@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
-prepare_test_database
-
 class CasesTest < ActiveSupport::TestCase
   test "it has a version number" do
     assert Db2Query::VERSION

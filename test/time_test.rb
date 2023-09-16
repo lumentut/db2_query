@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class TimeTest < ActiveSupport::TestCase
   test "time serialize and deserialize" do
     now = Time.now

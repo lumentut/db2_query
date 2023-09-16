@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class QueryTest < ActiveSupport::TestCase
   attr_reader :user
 

@@ -10,9 +10,6 @@ require "active_support/concurrency/load_interlock_aware_monitor"
 require "faker"
 require "tty-progressbar"
 
-ENV["RAILS_ENV"] = "test"
-ENV["RAILS_ROOT"] ||= File.dirname(__FILE__) + "/../../../.."
-
 def load_config
   file_path = File.dirname(__FILE__) + "/dummy/config/db2query.yml"
   Db2Query::Base.load_database_configurations file_path

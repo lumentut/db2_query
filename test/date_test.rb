@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class DateTest < ActiveSupport::TestCase
   test "date serialize and deserialize" do
     today = Date.today

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class ConfigTest < ActiveSupport::TestCase
   test "load database config exception" do
     exception = assert_raise(Exception) { Db2Query::Base.load_database_configurations "fake" }

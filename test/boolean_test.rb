@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class BooleanTest < ActiveSupport::TestCase
   test "boolean options" do
     query = BooleanQuery.definitions.lookup(:all)

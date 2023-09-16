@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class TimestampTest < ActiveSupport::TestCase
   test "date serialize and deserialize" do
     time_1 = "2021-07-31-01.02.03.456789"

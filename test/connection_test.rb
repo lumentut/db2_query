@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 class ConnectionTest < ActiveSupport::TestCase
   setup do
     Db2Query::Base.establish_connection
