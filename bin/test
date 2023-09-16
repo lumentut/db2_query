@@ -3,6 +3,6 @@ $: << File.expand_path("../test", __dir__)
 
 require "bundler/setup"
 require "rails/plugin/test"
-require_relative "../test/test_helper"
+require "test_helper"
 
 prepare_test_database
