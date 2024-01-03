@@ -2,7 +2,8 @@
 
 [![Gem Version](https://badge.fury.io/rb/db2_query.svg)](https://badge.fury.io/rb/db2_query)
 
-A Rails 5 & Rails 6 plugin for handling Db2 SQL database `SIUD` statement (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) by using ODBC connection.
+A Rails 5 & Rails 6 (Ruby v2) plugin for connecting Db2 with Rails appplication by using ODBC connection.
+Db2Query execute plain SQL instead of using query builder
 
 Note: Tested at Rails 5.2.6 and Rails 6.1.4
 
@@ -273,7 +274,7 @@ end
 ```
 #### 3.2.2 Query Argument Types
 
-Sometimes, the `query arguments` do not exist in query definitions fields. In such a case, we have to provide `query argument types` at the Query class.
+Sometimes, the `query arguments` do not exist in query definitions fields. In such a case, a `Db2Query::QueryArgumentError` will be raised. So, we have to provide `query argument types` at the Query class.
 
 ```ruby
 module NameSpace

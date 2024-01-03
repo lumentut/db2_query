@@ -39,6 +39,8 @@ module Db2Query
         query.argument_keys.each do |key|
           key, key_def = query_arg_key(query, key)
           query.argument_types.store(key, data_type_instance(key_def))
+        rescue
+          raise Db2Query::QueryArgumentError.new(query_name, key)
         end
       end
     end

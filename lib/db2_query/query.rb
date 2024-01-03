@@ -15,8 +15,8 @@ module Db2Query
     end
 
     def define_sql(sql)
-      @keys ||= sql_arguments(sql)
-      @sql ||= sql.tr("$", "")
+      @keys = sql_arguments(sql)
+      @sql = sql.tr("$", "")
     end
 
     def map_column(name, args)

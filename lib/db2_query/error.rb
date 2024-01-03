@@ -78,4 +78,16 @@ module Db2Query
       "The query body needs to be callable or is a SQL statement string"
     end
   end
+
+  class QueryArgumentError < StandardError
+    def initialize(query_name, arg_key)
+      @query_name = query_name
+      @arg_key = arg_key
+      super(message)
+    end
+
+    def message
+      "Data type of `#{@arg_key}` not found at `:#{@query_name}` query definitions"
+    end
+  end
 end
