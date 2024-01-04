@@ -1,6 +1,6 @@
 GIT
-  remote: https://github.com/vhermecz/ruby-odbc.git
-  revision: 0423cec482ef837af710ff291aa45bbc53c398e5
+  remote: https://github.com/yohaneslumentut/ruby-odbc.git
+  revision: 24f1b940dbedf35d06436b5fdadd55f376c7b321
   specs:
     ruby-odbc (0.999991)
 
