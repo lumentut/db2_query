@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.email       = ["yohanes.lumentut@gmail.com"]
   spec.homepage    = "https://github.com/yohaneslumentut/db2_query"
   spec.summary     = "Rails Db2 ODBC plugin"
-  spec.description = "A Rails 7 (Ruby v2.7.8) plugin for connecting Db2 with Rails appplication by using ODBC connection."
+  spec.description = "A Rails 7 (Ruby v3.1.0) plugin for connecting Db2 with Rails appplication by using ODBC connection."
   spec.license     = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
