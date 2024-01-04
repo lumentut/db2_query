@@ -35,11 +35,10 @@ module Db2Query
       end
     end
 
-    attr_reader :config, :connection_pool, :instrumenter, :lock
+    attr_reader :config, :connection_pool, :instrumenter, :mutex
 
     delegate :with, :current_state, :disconnect!, :reload, to: :connection_pool
     delegate :instrument, to: :instrumenter
-    delegate :synchronize, to: :lock
 
     include Logger
     include DbStatements
@@ -47,7 +46,7 @@ module Db2Query
     def initialize(config)
       @config = config
       @instrumenter = ActiveSupport::Notifications.instrumenter
-      @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+      @mutex = Mutex.new
       @connection_pool = nil
       create_connection_pool
     end
@@ -59,7 +58,7 @@ module Db2Query
     end
 
     def create_connection_pool
-      synchronize do
+      mutex.synchronize do
         return @connection_pool if @connection_pool
         @connection_pool = Pool.new(pool_config) { DbClient.new(config) }
       end

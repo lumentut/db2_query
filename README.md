@@ -2,10 +2,10 @@
 
 [![Gem Version](https://badge.fury.io/rb/db2_query.svg)](https://badge.fury.io/rb/db2_query)
 
-A Rails 5 & Rails 6 (Ruby v2) plugin for connecting Db2 with Rails appplication by using ODBC connection.
+A Rails 7 (Ruby v2.7.8) plugin for connecting Db2 with Rails appplication by using ODBC connection.
 Db2Query execute plain SQL instead of using query builder
 
-Note: Tested at Rails 5.2.6 and Rails 6.1.4
+Note: Tested at Rails 7.1.2
 
 ## 1. Installation
 Add this line to your application's Gemfile:
@@ -128,13 +128,13 @@ end
 Once you completely do the [**Installation**](#1-installation) & [**Initialization**](#2-initialization) steps, basically you has been ready to use **Db2Query::Base**. There are three additional rules that help **Db2Query** run properly: **SQL Convention**, **Field Type Convention**, and **Argument Key Convention**.
 
 **SQL Convention**:
-> Dollar symbol **$** is used as the prefix of all column names **in the WHERE clause** of provided **Parameterized Query** SQL string. It is used as a pointer in the query arguments key and value binding process. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.
+> A colon **:** is used as the prefix of all column names of provided **Parameterized Query** SQL string. It is used as a pointer in the query arguments key and value binding process. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.
 
 ```ruby
 # SQL Convention Examples
 # Example of Parameterized Query SQL usage
 
-Db2Query::Base.query("SELECT * FROM USERS WHERE $email = ?", "my_account@email.com")
+Db2Query::Base.query("SELECT * FROM USERS WHERE email = :email", "my_account@email.com")
 
 # Example of Normal SQL usage
 
@@ -170,7 +170,7 @@ end
 class MyQuery < Db2Query::Base
   ...
   query :find_by, <<-SQL
-    SELECT * FROM USERS WHERE $id = ?
+    SELECT * FROM USERS WHERE id = :id
   SQL
   ...
 end
@@ -187,7 +187,7 @@ MyQuery.find_user_by_id id: 10000
 ##### #query(sql, args)
 A raw query to perform a `connection.run(sql, args)` operation and returns an array of hashes representing each row record being executed.
 ```ruby
-Db2Query::Base.query("SELECT * FROM USERS WHERE $id < ?", 10003)
+Db2Query::Base.query("SELECT * FROM USERS WHERE id < :id", 10003)
 => [{:id=>10000, :first_name=>"Taisha", :last_name=>"Kutch", :email=>"willie.lesch@toy.org"}, {:id=>10001, :first_name=>"Setsuko", :last_name=>"Kutch", :email=>"thelma@purdy.co"}, {:id=>10002, :first_name=>"Trina", :last_name=>"Mayer", :email=>"dorsey_upton@flatley-gulgowski.name"}]
 ```
 
@@ -215,7 +215,7 @@ Db2Query::Base.query_values("SELECT * FROM USERS WHERE id < 10003")
 ##### #execute(sql, args)
 A method to execute `DUI Statement SQL` by using `connection.do(sql, args)`
 ```ruby
-Db2Query::Base.execute("DELETE FROM users WHERE $id = ?", 10000)
+Db2Query::Base.execute("DELETE FROM users WHERE id = :id", 10000)
 => -1
 ```
 
@@ -282,7 +282,7 @@ module NameSpace
     query_arguments :user_by_email, { email: :string, trim: true }
 
     def user_by_email_sql
-      "SELECT id, first_name, last_name FROM USERS WHERE $email = ?"
+      "SELECT id, first_name, last_name FROM USERS WHERE email = :email"
     end
   end
 end
@@ -379,7 +379,7 @@ class MyQuery < Db2Query::Base
   end
 
   def find_user_by_id_sql
-    "SELECT * FROM USERS WHERE $id = ?"
+    "SELECT * FROM USERS WHERE id = :id"
   end
 end
 ```
@@ -395,7 +395,7 @@ class MyQuery < Db2Query::Base
   SQL
 
   query :find_user_by_id, <<-SQL
-    SELECT * FROM USERS WHERE $id = ?
+    SELECT * FROM USERS WHERE id = :id
   SQL
 end
 ```
@@ -411,7 +411,7 @@ class MyQuery < Db2Query::Base
   }
 
   query :find_user_by_id, -> args {
-    fetch("SELECT * FROM USERS WHERE $id = ?", args)
+    fetch("SELECT * FROM USERS WHERE id = :id", args)
   }
 end
 ```
@@ -466,7 +466,7 @@ class MyQuery < Db2Query::Base
   }
   
   # implementation
-  query :user_by_email, _SQL.("$email = ?")
+  query :user_by_email, _SQL.("email = :email")
 end
 ```
 ```bash
@@ -537,7 +537,7 @@ Utilize the goodness of rails model `scope`
 ```ruby
 class User < Db2Record
   scope :by_name, -> *args {
-    query("SELECT * FROM USERS WHERE $first_name = ? AND $last_name = ?", args)
+    query("SELECT * FROM USERS WHERE first_name = :first_name AND last_name = :last_name", args)
   }
 end
 ```

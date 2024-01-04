@@ -1,14 +1,11 @@
-# frozen_string_literal: true
-
-require "active_support"
-require "active_support/concurrency/load_interlock_aware_monitor"
-require "active_record"
-require "active_model/type"
+require "db2_query/version"
+require "db2_query/railtie"
 require "connection_pool"
 require "odbc_utf8"
 require "db2_query/error"
 
 module Db2Query
+  # Your code goes here...
   autoload :Version, "db2_query/version"
   autoload :Error, "db2_query/error"
   autoload :Config, "db2_query/config"
@@ -45,5 +42,3 @@ module Db2Query
     __dir__
   end
 end
-
-require "db2_query/railtie" if defined?(Rails)

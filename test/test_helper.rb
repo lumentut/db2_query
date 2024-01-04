@@ -1,14 +1,20 @@
-# frozen_string_literal: true
-
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
 
 require_relative "../test/dummy/config/environment"
+require "rails/test_help"
 require "connection_pool"
 require "db2_query"
-require "active_support/concurrency/load_interlock_aware_monitor"
 require "faker"
 require "tty-progressbar"
+
+# Load fixtures from the engine
+if ActiveSupport::TestCase.respond_to?(:fixture_paths=)
+  ActiveSupport::TestCase.fixture_paths = [File.expand_path("fixtures", __dir__)]
+  ActionDispatch::IntegrationTest.fixture_paths = ActiveSupport::TestCase.fixture_paths
+  ActiveSupport::TestCase.file_fixture_path = File.expand_path("fixtures", __dir__) + "/files"
+  ActiveSupport::TestCase.fixtures :all
+end
 
 def load_config
   file_path = File.dirname(__FILE__) + "/dummy/config/db2query.yml"
@@ -74,3 +80,5 @@ def prepare_test_database
   end
   puts ""
 end
+
+prepare_test_database

@@ -6,6 +6,6 @@ class BooleanQuery < Db2Query::Base
   end
 
   query :insert, <<-SQL
-    INSERT INTO booleans ($name, $data) VALUES (?, ?)
+    INSERT INTO booleans (name, data) VALUES (:name, :data)
   SQL
 end

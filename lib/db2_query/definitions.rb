@@ -28,8 +28,12 @@ module Db2Query
 
     def lookup(query_name)
       queries.fetch(query_name)
-    rescue
-      raise Db2Query::QueryDefinitionError.new(name, query_name)
+    rescue Exception => e
+      if defined?(name)
+        raise Db2Query::QueryDefinitionError.new(name, query_name)
+      else
+        raise Db2Query::Error, e.message
+      end
     end
 
     def lookup_query(*args)

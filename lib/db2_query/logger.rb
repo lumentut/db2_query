@@ -22,7 +22,7 @@ module Db2Query
         statement_name:    nil,
         connection_id:     object_id,
         connection:        self) do
-        synchronize do
+        mutex.synchronize do
           yield
         end
       rescue => e

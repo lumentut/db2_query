@@ -14,9 +14,12 @@ module Db2Query
       @types = {}
     end
 
-    def define_sql(sql)
-      @keys = sql_arguments(sql)
-      @sql = sql.tr("$", "")
+    def define_sql(raw_sql)
+      @keys = []
+      @sql = raw_sql.gsub(/:\w+/) do |match|
+        @keys << match[1..]
+        '?'
+      end
     end
 
     def map_column(name, args)
@@ -96,9 +99,9 @@ module Db2Query
     end
 
     private
-      def sql_arguments(raw_sql)
-        raw_sql.scan(/\$\S+/).map { |arg| arg.gsub!(/[$=,)]/, "").to_sym }
-      end
+      # def sql_arguments(raw_sql)
+      #   raw_sql.scan(/\$\S+/).map { |arg| arg.gsub!(/[$=,)]/, "").to_sym }
+      # end
 
       def serialized_arg(arg, key)
         query_name.nil? ? arg : argument_type(key).serialize(arg)

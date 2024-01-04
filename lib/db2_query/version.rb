@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Db2Query
-  VERSION = "0.3.3"
+  VERSION = "0.3.5"
 end

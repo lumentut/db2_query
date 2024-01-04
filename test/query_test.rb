@@ -16,7 +16,7 @@ class QueryTest < ActiveSupport::TestCase
 
     query = UserQuery.definitions.lookup(:all)
 
-    query.define_sql("FAKE SQL")
+    # query.define_sql("SELECT * FROM LIBTEST.USER")
 
     assert_equal query.sql, sql
 
@@ -40,8 +40,8 @@ class QueryTest < ActiveSupport::TestCase
 
     query = UserQuery.definitions.lookup(:by_id)
 
-    assert_equal 0, query.sql.scan(/\$\S+/).length
-    assert_equal [:id], query.keys
+    assert_equal 0, query.sql.scan(/\:\S+/).length
+    assert_equal ['id'], query.keys
   end
 
   test "query 2 arguments" do
@@ -53,8 +53,8 @@ class QueryTest < ActiveSupport::TestCase
 
     query = UserQuery.definitions.lookup(:by_first_name_and_email)
 
-    assert_equal 0, query.sql.scan(/\$\S+/).length
-    assert_equal [:first_name, :email], query.keys
+    assert_equal 0, query.sql.scan(/\:\S+/).length
+    assert_equal ['first_name', 'email'], query.keys
 
     query.keys.each do |key|
       assert_equal Db2Query::Type::String, query.data_type(key).class
@@ -110,7 +110,7 @@ class QueryTest < ActiveSupport::TestCase
     UserQuery.define_query_definitions
 
     UserQuery.query :by_last_name, -> args {
-      UserQuery.fetch("SELECT * FROM USERS WHERE $last_name = ?", args)
+      UserQuery.fetch("SELECT * FROM USERS WHERE last_name = :last_name", args)
     }
 
     user = UserQuery.by_last_name user_names.first
@@ -118,7 +118,7 @@ class QueryTest < ActiveSupport::TestCase
 
     exception = assert_raise(Exception) {
       UserQuery.query :insert_fetch, -> args {
-        UserQuery.fetch("INSERT INTO users ($first_name, $last_name, $email) VALUES (?, ?, ?)", args)
+        UserQuery.fetch("INSERT INTO users (first_name, last_name, email) VALUES (:first_name, :last_name, :email)", args)
       }
       UserQuery.insert_fetch first_name: user.first_name, last_name: user.last_name, email: user.email
     }
@@ -130,11 +130,11 @@ class QueryTest < ActiveSupport::TestCase
     users = UserQuery.all
 
     user = users.record
-    query_1 = Db2Query::Base.query("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", user.first_name, user.email)
+    query_1 = Db2Query::Base.query("SELECT * FROM USERS WHERE first_name = :first_name AND email = :email", user.first_name, user.email)
     assert_equal query_1.first[:first_name], user.first_name
     assert_equal query_1.first[:email], user.email
 
-    query_2 = Db2Query::Base.query("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", email: user.email, first_name: user.first_name)
+    query_2 = Db2Query::Base.query("SELECT * FROM USERS WHERE first_name = :first_name AND email = :email", email: user.email, first_name: user.first_name)
     assert_equal query_2.first[:first_name], user.first_name
     assert_equal query_2.first[:email], user.email
 
@@ -142,7 +142,7 @@ class QueryTest < ActiveSupport::TestCase
     assert_equal users.to_h, query_3
 
     exception = assert_raise(Exception) {
-      Db2Query::Base.query("SELECT * FROM USERS WHERE $first_name = ? AND $email = ?", email: user.email)
+      Db2Query::Base.query("SELECT * FROM USERS WHERE first_name = :first_name AND email = :email", email: user.email)
     }
 
     assert_equal "Wrong number of arguments (given 1, expected 2)", exception.message

@@ -6,6 +6,6 @@ class TimestampsQuery < Db2Query::Base
   SQL
 
   query :insert, <<-SQL
-    INSERT INTO timestamps ($name, $data) VALUES (?, ?)
+    INSERT INTO timestamps (name, data) VALUES (:name, :data)
   SQL
 end

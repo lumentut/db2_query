@@ -6,6 +6,6 @@ class TimesQuery < Db2Query::Base
   SQL
 
   query :insert, <<-SQL
-    INSERT INTO times ($name, $data) VALUES (?, ?)
+    INSERT INTO times (name, data) VALUES (:name, :data)
   SQL
 end
