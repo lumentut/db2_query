@@ -9,7 +9,7 @@ PATH
   specs:
     db2_query (0.3.5)
       connection_pool
-      rails (>= 7.1.2)
+      rails (~> 7.1, >= 7.1.2)
 
 GEM
   remote: https://rubygems.org/
@@ -206,11 +206,11 @@ PLATFORMS
 
 DEPENDENCIES
   db2_query!
-  faker
+  faker (~> 3.2)
   puma
   ruby-odbc!
   sqlite3
-  tty-progressbar
+  tty-progressbar (~> 0.18)
 
 BUNDLED WITH
    2.4.18

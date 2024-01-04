@@ -21,9 +21,10 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 7.1.2"
-  spec.add_development_dependency "tty-progressbar"
-  spec.add_development_dependency "faker"
-  spec.add_dependency "connection_pool"
-  # spec.add_dependency "ruby-odbc"
+  spec.add_dependency "rails", "~> 7.1", ">= 7.1.2"
+  spec.add_development_dependency "tty-progressbar", "~> 0.18"
+  spec.add_development_dependency "faker", "~> 3.2"
+  spec.add_dependency "connection_pool", "~> 2.2.5"
+  spec.add_dependency "ruby-odbc"
+
 end
