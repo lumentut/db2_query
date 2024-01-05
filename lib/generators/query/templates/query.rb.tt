@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+<% module_namespacing do -%>
+class <%= query_class_name %> < <%= "Db2Query::Base" -%>
+<% if @query_methods.empty? %>
+<%= indent("query :to_do, <<-SQL\n") %>
+<%= indent("SQL\n") %>
+<%= indent("def to_do_sql\n") %>
+<%= indent("end") %>
+<% end -%>
+<% @method_options.each do |key, val| -%>
+<% val.each_with_index do |option, index| -%>
+<% case key when 'defines' -%> 
+<%= indent("def #{option}_sql\n") %>
+<%= indent("end") %>
+<% when 'queries' %>
+<%= indent("query :#{option}, <<-SQL\n") %>
+<%= indent("SQL") %>
+<% when 'lambdas' %>
+<%= indent("query :#{option}, -> args {\n") %>
+<%= indent("}") %>
+<% end -%>
+<% end -%>
+<% end -%>
+<%= 'end' -%>
+<% end %>
