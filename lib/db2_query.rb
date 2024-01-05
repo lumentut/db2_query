@@ -3,6 +3,7 @@ require "db2_query/railtie"
 require "connection_pool"
 require "odbc_utf8"
 require "db2_query/error"
+require "db2_query/tasks"
 
 module Db2Query
   # Your code goes here...

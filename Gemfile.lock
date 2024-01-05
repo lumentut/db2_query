@@ -7,9 +7,10 @@ GIT
 PATH
   remote: .
   specs:
-    db2_query (0.3.5)
-      connection_pool
+    db2_query (0.3.6)
+      connection_pool (~> 2.2.5)
       rails (~> 7.1, >= 7.1.2)
+      ruby-odbc
 
 GEM
   remote: https://rubygems.org/
