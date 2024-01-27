@@ -29,6 +29,12 @@ $ gem install db2_query
   ...
 ```
 
+**Note:**
+
+> You need to make sure you have `unixODBC` installed on your machine before doing the installation.
+
+For Mac OS, you need to install `ruby-odbc` before running the installation. First check the location of the `unixODBC` installation and use the directory in the installation command's argument. [Read more.](https://stackoverflow.com/a/72221528/8198873)
+
 ## 2. Initialization
 
 Execute **db2query:init** task at the app root to create database configurations and initializer file.
@@ -46,21 +52,21 @@ Complete the configurations by editing the files according to your application r
 File **config/db2query.yml** consist of DSN/database name and connection pool config:
 
 ```yml
-  development:
-     dsn: LIBDEV
-     idle: 5
-     pool: 5
-     timeout: 5
-  test:
-     dsn: LIBTEST
-     idle: 5
-     pool: 5
-     timeout: 5
-  production:
-     dsn: LIBPROD
-     idle: 5
-     pool: 5
-     timeout: 5
+development:
+  dsn: LIBDEV
+  idle: 5
+  pool: 5
+  timeout: 5
+test:
+  dsn: LIBTEST
+  idle: 5
+  pool: 5
+  timeout: 5
+production:
+  dsn: LIBPROD
+  idle: 5
+  pool: 5
+  timeout: 5
 ```
 
 Key **idle** is a **client** idle maximum limit value (in minutes) to avoid the client being disconnected by the host server. Setting this value to zero will lead to an "ODBC driver Communication Link Failure. Comm rc 10054 . [CWBCO1047](https://www.ibm.com/support/pages/cwbco1047-any-function-uses-database-host-server)" error after your application idle in a certain period of time.
@@ -109,9 +115,9 @@ You can use your own Field type class by extending **Db2Query::Type::Value** cla
   class CustomTypeClass < Db2Query::Type::Value
     # Method to convert data from ruby type value into data that is understood by Db2
     def serialize(value)
-      # Your logic 
+      # Your logic
     end
-   
+
     # Method to convert Db2 database output data type that is recognized by your rails app
     def deserialize(value)
       # Your logic
@@ -125,7 +131,7 @@ Then put the classes into a field types hash constant and load it into the **Db2
 # app_root/config/initializers/db2query.rb
 
 require "db2_query"
- 
+
 CUSTOM_FIELD_TYPES = {
    binary: CustomBinaryTypeClass
    integer: CustomIntegerTypeClass
@@ -145,6 +151,7 @@ end
 Once you completely do the [**Installation**](#1-installation) & [**Initialization**](#2-initialization) steps, basically you has been ready to use **Db2Query::Base**. There are three additional rules that help **Db2Query** run properly: **SQL Convention**, **Field Type Convention**, and **Argument Key Convention**.
 
 **SQL Convention**:
+
 > A colon **:** is used as the prefix of all column names of provided **Parameterized Query** SQL string. It is used in determining query arguments key and value binding process. We have to provide it manually in the SQL string of each **Parameterized Query**. Here, **Parameterized Query** is used to minimize SQL injection risks.
 
 ```ruby
@@ -159,6 +166,7 @@ Db2Query::Base.query("SELECT * FROM USERS WHERE email = 'my_account@email.com'")
 ```
 
 **Field Type Convention**:
+
 > Query definition's **field_name** written in **query_definition** block must be in downcased format.
 
 ```ruby
@@ -179,6 +187,7 @@ end
 ```
 
 **Argument Key Convention**:
+
 > The letter case of a **Named Argument** key that passed into a query, has to follow its parameter letter case format that is written in the SQL. The argument key is case-sensitive. If the parameter in your SQL is written in downcase format, then your argument key has to be in downcase format too, and vice versa.
 
 ```ruby
@@ -261,12 +270,12 @@ module Definitions
   class YourQueryDefinitions < Db2Query::Definitions
     def describe  # method that is used by Db2Query to describe your query definition
       query_definition :your_first_query_name do |c|
-        c.field_name     :field_type, options 
+        c.field_name     :field_type, options
         ...
       end
 
       query_definition :your_next_query_name do |c|
-        c.field_name     :field_type, options 
+        c.field_name     :field_type, options
         ...
       end
     end
@@ -342,7 +351,7 @@ module NameSpace
     SQL
 
     query :last_query, -> {
-      
+
     }
   end
 end
@@ -503,7 +512,7 @@ class MyQuery < Db2Query::Base
   _SQL = -> extension {
     sql_with_extension("SELECT * FROM USERS WHERE @extension", extension)
   }
-  
+
   # implementation
   query :user_by_email, _SQL.("email = :email")
 end
@@ -563,9 +572,9 @@ If you upgrade from the previous version, you have to run **`rake db2query:init`
 
 `Db2Query::Result` inherit all `ActiveRecord::Result` methods with additional custom methods:
 
-  1. `records` to convert query result into an array of Result query's Record objects.
-  2. `record` to get the first Record Object of Result query.
-  3. `to_h` to convert query result into an array of hashes with symbolized keys.
+1. `records` to convert query result into an array of Result query's Record objects.
+2. `record` to get the first Record Object of Result query.
+3. `to_h` to convert query result into an array of hashes with symbolized keys.
 
 ## 5. ActiveRecord Combination
 
